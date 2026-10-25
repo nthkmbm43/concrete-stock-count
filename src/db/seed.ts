@@ -172,116 +172,120 @@ export async function runSeed() {
       .onConflictDoUpdate({ target: schema.storageLocations.id, set: loc });
   }
 
-  // 5. Seed Users & Profiles (Better Auth)
-  console.log("Seeding Users & Profiles...");
-  const usersData = [
-    {
-      id: "user-admin",
-      name: "Admin Demo",
-      email: "admin@concretefactory.co.th",
-      role: "ADMIN",
-      fullName: "ชัยวัฒน์ (หัวหน้าคลัง)",
-      employeeCode: "ADM-001",
-      plantId: 1,
-      phone: "089-999-8888",
-    },
-    {
-      id: "user-1",
-      name: "สมชาย ใจมั่นคง",
-      email: "somchai@concretefactory.co.th",
-      role: "STAFF",
-      fullName: "สมชาย ใจมั่นคง",
-      employeeCode: "STF-001",
-      plantId: 1,
-      phone: "081-234-5678",
-    },
-    {
-      id: "user-2",
-      name: "วิชัย สุวรรณโชติ",
-      email: "wichai@concretefactory.co.th",
-      role: "STAFF",
-      fullName: "วิชัย สุวรรณโชติ",
-      employeeCode: "STF-002",
-      plantId: 2,
-      phone: "082-345-6789",
-    },
-    {
-      id: "user-3",
-      name: "นิตยา รักษ์พงษ์",
-      email: "nittaya@concretefactory.co.th",
-      role: "STAFF",
-      fullName: "นิตยา รักษ์พงษ์",
-      employeeCode: "STF-003",
-      plantId: 3,
-      phone: "083-456-7890",
-    },
-    {
-      id: "user-4",
-      name: "สมพร ทรัพย์ประเสริฐ",
-      email: "somporn@concretefactory.co.th",
-      role: "STAFF",
-      fullName: "สมพร ทรัพย์ประเสริฐ",
-      employeeCode: "STF-004",
-      plantId: 4,
-      phone: "084-567-8901",
-    },
-  ];
+  // 5. Seed Users & Profiles (Better Auth) - Only in DEMO_MODE
+  if (process.env.DEMO_MODE === "true") {
+    console.log("Seeding Demo Users & Profiles (DEMO_MODE=true)...");
+    const usersData = [
+      {
+        id: "user-admin",
+        name: "Admin Demo",
+        email: "admin@concretefactory.co.th",
+        role: "ADMIN",
+        fullName: "ชัยวัฒน์ (หัวหน้าคลัง)",
+        employeeCode: "ADM-001",
+        plantId: 1,
+        phone: "089-999-8888",
+      },
+      {
+        id: "user-1",
+        name: "สมชาย ใจมั่นคง",
+        email: "somchai@concretefactory.co.th",
+        role: "STAFF",
+        fullName: "สมชาย ใจมั่นคง",
+        employeeCode: "STF-001",
+        plantId: 1,
+        phone: "081-234-5678",
+      },
+      {
+        id: "user-2",
+        name: "วิชัย สุวรรณโชติ",
+        email: "wichai@concretefactory.co.th",
+        role: "STAFF",
+        fullName: "วิชัย สุวรรณโชติ",
+        employeeCode: "STF-002",
+        plantId: 2,
+        phone: "082-345-6789",
+      },
+      {
+        id: "user-3",
+        name: "นิตยา รักษ์พงษ์",
+        email: "nittaya@concretefactory.co.th",
+        role: "STAFF",
+        fullName: "นิตยา รักษ์พงษ์",
+        employeeCode: "STF-003",
+        plantId: 3,
+        phone: "083-456-7890",
+      },
+      {
+        id: "user-4",
+        name: "สมพร ทรัพย์ประเสริฐ",
+        email: "somporn@concretefactory.co.th",
+        role: "STAFF",
+        fullName: "สมพร ทรัพย์ประเสริฐ",
+        employeeCode: "STF-004",
+        plantId: 4,
+        phone: "084-567-8901",
+      },
+    ];
 
-  for (const u of usersData) {
-    // Upsert User
-    await db
-      .insert(schema.user)
-      .values({
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        emailVerified: true,
-      })
-      .onConflictDoUpdate({
-        target: schema.user.id,
-        set: { name: u.name, email: u.email, role: u.role },
-      });
+    for (const u of usersData) {
+      // Upsert User
+      await db
+        .insert(schema.user)
+        .values({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          emailVerified: true,
+        })
+        .onConflictDoUpdate({
+          target: schema.user.id,
+          set: { name: u.name, email: u.email, role: u.role },
+        });
 
-    // Upsert Profile
-    await db
-      .insert(schema.profiles)
-      .values({
-        id: `prof-${u.id}`,
-        userId: u.id,
-        fullName: u.fullName,
-        employeeCode: u.employeeCode,
-        role: u.role,
-        plantId: u.plantId,
-        phone: u.phone,
-      })
-      .onConflictDoUpdate({
-        target: schema.profiles.id,
-        set: {
+      // Upsert Profile
+      await db
+        .insert(schema.profiles)
+        .values({
+          id: `prof-${u.id}`,
+          userId: u.id,
           fullName: u.fullName,
+          employeeCode: u.employeeCode,
           role: u.role,
           plantId: u.plantId,
           phone: u.phone,
-        },
-      });
+        })
+        .onConflictDoUpdate({
+          target: schema.profiles.id,
+          set: {
+            fullName: u.fullName,
+            role: u.role,
+            plantId: u.plantId,
+            phone: u.phone,
+          },
+        });
 
-    // Upsert Better Auth Credential Account
-    const defaultPasswordHash = await hashPassword("Demo1234!");
-    await db
-      .insert(schema.account)
-      .values({
-        id: `acc-${u.id}`,
-        accountId: u.id,
-        providerId: "credential",
-        userId: u.id,
-        password: defaultPasswordHash,
-      })
-      .onConflictDoUpdate({
-        target: schema.account.id,
-        set: {
+      // Upsert Better Auth Credential Account
+      const defaultPasswordHash = await hashPassword("Demo1234!");
+      await db
+        .insert(schema.account)
+        .values({
+          id: `acc-${u.id}`,
+          accountId: u.id,
+          providerId: "credential",
+          userId: u.id,
           password: defaultPasswordHash,
-        },
-      });
+        })
+        .onConflictDoUpdate({
+          target: schema.account.id,
+          set: {
+            password: defaultPasswordHash,
+          },
+        });
+    }
+  } else {
+    console.log("Skipping demo users seed (DEMO_MODE is not true).");
   }
 
   // 6. Seed Featured Products (including FP-250-18)

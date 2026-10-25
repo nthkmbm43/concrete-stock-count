@@ -49,10 +49,25 @@ function applySetCookies(cookieStrings: string[], cookieStore: any) {
 
 /**
  * Server Action: Signs in as a demo user and issues a genuine Better Auth session cookie
+ * Strictly guarded by server-side DEMO_MODE flag.
  */
 export async function loginDemoUserAction(email: string) {
+  // 0. CRITICAL SERVER-SIDE DEMO GUARD
+  if (process.env.DEMO_MODE !== "true") {
+    return {
+      success: false,
+      error: "การเข้าสู่ระบบแบบ Demo ถูกปิดใช้งานบนระบบนี้ (403 Forbidden: Demo Mode Disabled)",
+      statusCode: 403,
+    };
+  }
+
   try {
-    const cookieStore = await cookies();
+    let cookieStore: any = null;
+    try {
+      cookieStore = await cookies();
+    } catch {
+      // Non-request scope or test runner context
+    }
 
     // 1. Authenticate with Better Auth backend
     const res = await auth.api.signInEmail({
@@ -67,12 +82,14 @@ export async function loginDemoUserAction(email: string) {
       return { success: false, error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" };
     }
 
-    // 2. Set the signed session cookie in Next.js response
+    // 2. Set the signed session cookie in Next.js response if cookie store is available
     const setCookies = res.headers.getSetCookie
       ? res.headers.getSetCookie()
       : [res.headers.get("set-cookie") || ""].filter(Boolean);
 
-    applySetCookies(setCookies, cookieStore);
+    if (cookieStore) {
+      applySetCookies(setCookies, cookieStore);
+    }
 
     // 3. Fetch profile for UI hydration
     if (db) {

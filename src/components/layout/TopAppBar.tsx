@@ -103,22 +103,41 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
                 </button>
               )}
 
-              {/* User Switcher Pill Button */}
-              <button
-                onClick={onOpenUserSwitcher}
-                className="flex items-center gap-1.5 pl-2 pr-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200/80 active:scale-95 transition-all text-xs font-semibold text-slate-800 touch-press"
-              >
-                <Users className="h-3.5 w-3.5 text-blue-600" />
-                <span className="truncate max-w-[80px] sm:max-w-[105px]">
-                  {currentUser.full_name.split(" ")[0]}
-                </span>
-                <Badge
-                  variant={currentUser.role === "ADMIN" ? "amber" : "default"}
-                  className="text-[9px] px-1 py-0 h-4"
+              {/* User Switcher Pill Button (Interactive only in DEMO_MODE) */}
+              {process.env.NEXT_PUBLIC_DEMO_MODE === "true" ? (
+                <button
+                  onClick={onOpenUserSwitcher}
+                  title="สลับบัญชีผู้ใช้งาน Demo"
+                  className="flex items-center gap-1.5 pl-2 pr-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200/80 active:scale-95 transition-all text-xs font-semibold text-slate-800 touch-press"
                 >
-                  {currentUser.role}
-                </Badge>
-              </button>
+                  <Users className="h-3.5 w-3.5 text-blue-600" />
+                  <span className="truncate max-w-[80px] sm:max-w-[105px]">
+                    {currentUser.full_name.split(" ")[0]}
+                  </span>
+                  <Badge
+                    variant={currentUser.role === "ADMIN" ? "amber" : "default"}
+                    className="text-[9px] px-1 py-0 h-4"
+                  >
+                    {currentUser.role}
+                  </Badge>
+                </button>
+              ) : (
+                <div
+                  title={`ผู้ใช้งาน: ${currentUser.full_name}`}
+                  className="flex items-center gap-1.5 pl-2 pr-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-semibold text-slate-800"
+                >
+                  <Users className="h-3.5 w-3.5 text-slate-500" />
+                  <span className="truncate max-w-[80px] sm:max-w-[105px]">
+                    {currentUser.full_name.split(" ")[0]}
+                  </span>
+                  <Badge
+                    variant={currentUser.role === "ADMIN" ? "amber" : "default"}
+                    className="text-[9px] px-1 py-0 h-4"
+                  >
+                    {currentUser.role}
+                  </Badge>
+                </div>
+              )}
             </div>
           )}
         </div>

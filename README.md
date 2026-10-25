@@ -123,22 +123,42 @@ erDiagram
 
 ---
 
-## 6. Demo Accounts
+## 6. Demo Accounts & Safety Notice
 
-For evaluation and testing, the application includes pre-seeded demo accounts with Better Auth credentials:
+For portfolio demonstration and testing, the application includes pre-seeded demo accounts with Better Auth credentials:
 
 | Role | Name | Email | Password | Default Plant | Capabilities |
 |---|---|---|---|---|---|
-| **ADMIN** | ชัยวัฒน์ (หัวหน้าคลัง) | `admin@concretefactory.co.th` | `Demo1234!` | โรง 1 | Full administrative rights (Product CRUD, Stock Adjustments, Round control, Data Import) |
-| **STAFF** | สมชาย ใจมั่นคง | `somchai@concretefactory.co.th` | `Demo1234!` | โรง 1 | Raw materials warehouse counting |
-| **STAFF** | วิชัย สุวรรณโชติ | `wichai@concretefactory.co.th` | `Demo1234!` | โรง 2 | Finished goods counting (featured post `FP-250-18`) |
-| **STAFF** | นิตยา รักษ์พงษ์ | `nittaya@concretefactory.co.th` | `Demo1234!` | โรง 3 | Hollowcore slab warehouse counting |
-| **STAFF** | สมพร ทรัพย์ประเสริฐ | `somporn@concretefactory.co.th` | `Demo1234!` | โรง 4 | L-Wall & pipe warehouse counting |
+| **ADMIN** | ชัยวัฒน์ (หัวหน้าคลัง) | `admin@concretefactory.co.th` | `Demo1234!` **(DEMO ONLY)** | โรง 1 | Full administrative rights (Product CRUD, Stock Adjustments, Round control, Data Import) |
+| **STAFF** | สมชาย ใจมั่นคง | `somchai@concretefactory.co.th` | `Demo1234!` **(DEMO ONLY)** | โรง 1 | Raw materials warehouse counting |
+| **STAFF** | วิชัย สุวรรณโชติ | `wichai@concretefactory.co.th` | `Demo1234!` **(DEMO ONLY)** | โรง 2 | Finished goods counting (featured post `FP-250-18`) |
+| **STAFF** | นิตยา รักษ์พงษ์ | `nittaya@concretefactory.co.th` | `Demo1234!` **(DEMO ONLY)** | โรง 3 | Hollowcore slab warehouse counting |
+| **STAFF** | สมพร ทรัพย์ประเสริฐ | `somporn@concretefactory.co.th` | `Demo1234!` **(DEMO ONLY)** | โรง 4 | L-Wall & pipe warehouse counting |
 
-> **Note**: Tapping the user avatar in the top app bar opens the Demo Switcher, allowing one-click switching between accounts with genuine signed Better Auth session cookies (`better-auth.session_token`).
->
-> **Portfolio & Demonstration Disclaimer**:
-> This application is built as a production-grade full-stack portfolio demonstrating real-world mobile warehouse stock counting and inventory management systems. Any internal stock numbers, yard layouts, and employee credentials provided are demonstration data for testing and portfolio showcase purposes.
+> **IMPORTANT**: The password `Demo1234!` is **DEMO ONLY**. Never reuse demo credentials in a real employee production environment.
+
+### Demo Environment & Portfolio Notice
+The public Vercel deployment is a portfolio demonstration environment (`DEMO_MODE=true`).
+
+Demo users, stock quantities, warehouse locations, employee names, and operational records are sample/demo data. Do not reuse demo credentials for a real production deployment.
+
+For an internal employee deployment, set `DEMO_MODE=false`, remove demo credentials, and provision authorized employee accounts.
+
+> **หมายเหตุสภาพแวดล้อมสาธิต (Portfolio Demonstration)**:  
+> ระบบที่ Deploy บน Vercel สาธารณะนี้ถูกจัดทำขึ้นเพื่อแสดงผลงานสถาปัตยกรรมระบบ (Portfolio Demonstration) โดยเปิดใช้งาน `DEMO_MODE=true` ข้อมูลบัญชีพนักงาน, จุดวางคลัง, ยอดสต๊อก และบันทึกการตรวจนับทั้งหมดเป็นข้อมูลจำลองสำหรับทดสอบฟังก์ชันการทำงาน ห้ามนำรหัสผ่านตัวอย่างไปใช้กับระบบ Production จริง หากต้องการนำระบบไปติดตั้งใช้งานสำหรับพนักงานจริง ให้กำหนดค่า `DEMO_MODE=false` และสร้างบัญชีผู้ใช้งานที่ได้รับอนุญาตอย่างเป็นทางการ
+
+### Company Data Disclaimer
+Company name and publicly available company profile information may originate from public sources of Khon Kaen Concrete Product Co., Ltd. (KCON).
+
+Internal stock, SKU, employee, storage position and operational records shown in the demo are demonstration data unless imported from an authorized company data source.
+
+> **ข้อจำกัดความรับผิดชอบข้อมูลองค์กร**:  
+> ข้อมูลชื่อบริษัทและประวัติองค์กรที่แสดงบางส่วนอ้างอิงจากข้อมูลสาธารณะที่ตรวจสอบได้ของบริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด (KCON) ข้อมูลสต๊อกภายใน, รายการ SKU, รหัสพนักงาน และจุดวางคลังที่แสดงในระบบเป็นข้อมูลจำลองเพื่อการทดสอบระบบ เว้นแต่จะมีการนำเข้าจากแหล่งข้อมูลที่ได้รับอนุญาตขององค์กร
+
+### Demo Mode Environment Separation
+The system supports dual-mode deployment using strict environment variables:
+- **Portfolio Demonstration**: `DEMO_MODE=true` and `NEXT_PUBLIC_DEMO_MODE=true` (enables User Switcher and demo login).
+- **Internal Production Deployment**: `DEMO_MODE=false` and `NEXT_PUBLIC_DEMO_MODE=false` (completely hides Demo Switcher, enforces server-side 403 Forbidden rejection on demo login actions, and disables automated demo user seeding).
 
 ---
 
@@ -333,15 +353,16 @@ A comprehensive 7-step data onboarding workflow engineered for warehouse data bu
 
 - **Production URL**: [https://store-app2.vercel.app](https://store-app2.vercel.app)
 - **GitHub Repository**: [https://github.com/nthkmbm43/concrete-stock-count](https://github.com/nthkmbm43/concrete-stock-count)
+- **GitHub Release (v1.0.1)**: [https://github.com/nthkmbm43/concrete-stock-count/releases/tag/v1.0.1](https://github.com/nthkmbm43/concrete-stock-count/releases/tag/v1.0.1)
 - **Database**: Neon Serverless PostgreSQL (`ep-fragrant-feather-at378ccb.c-9.us-east-1.aws.neon.tech`)
 
 ### Automated Test Suites
-Run all security and data import automated tests:
+Run all security, demo separation, and data import automated tests:
 ```bash
-# Run complete test suite (45 Security + 51 Import tests)
+# Run complete test suite (52 Security & Demo Separation + 51 Import tests = 103 passed)
 npm test
 
-# Run security hardening tests only (Session, RBAC, 401/403, Zero Spoofing)
+# Run security hardening tests only (Session Revocation, RBAC, 401/403, Zero Spoofing, Demo Mode Guard)
 npm run test:security
 
 # Run data import & branding tests only (Excel, CSV, Normalization, KCON)

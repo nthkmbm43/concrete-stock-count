@@ -78,14 +78,16 @@ export const MobileShell: React.FC<MobileShellProps> = ({
           />
         )}
 
-        {/* User Switcher Bottom Sheet */}
-        <UserSwitcherModal
-          open={userSwitcherOpen}
-          onOpenChange={setUserSwitcherOpen}
-          currentUser={currentUser}
-          users={users}
-          onSelectUser={onSelectUser}
-        />
+        {/* User Switcher Bottom Sheet (Mounted only in DEMO_MODE) */}
+        {process.env.NEXT_PUBLIC_DEMO_MODE === "true" && (
+          <UserSwitcherModal
+            open={userSwitcherOpen}
+            onOpenChange={setUserSwitcherOpen}
+            currentUser={currentUser}
+            users={users}
+            onSelectUser={onSelectUser}
+          />
+        )}
       </div>
     </div>
   );

@@ -186,11 +186,13 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
     };
   }, [refreshData]);
 
-  // Initialize session cookie on mount
+  // Initialize session cookie on mount (only in DEMO_MODE)
   useEffect(() => {
-    loginDemoUserAction(currentUser.email).catch((err) => {
-      console.debug("Auto-session init error:", err);
-    });
+    if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
+      loginDemoUserAction(currentUser.email).catch((err) => {
+        console.debug("Auto-session init error:", err);
+      });
+    }
   }, [currentUser.email]);
 
   // Handle User Switch

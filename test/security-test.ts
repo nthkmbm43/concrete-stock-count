@@ -4,7 +4,7 @@ dotenv.config();
 
 import { auth } from "../src/lib/auth";
 import { db, schema } from "../src/db";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { UnauthorizedError, ForbiddenError } from "../src/lib/auth/permissions";
 import { adjustStockAction } from "../src/actions/adjustments";
 import { executeBatchImportAction } from "../src/actions/import";
@@ -12,6 +12,8 @@ import { updateCompanySettingsAction } from "../src/actions/company";
 import { submitStockCountAction } from "../src/actions/counts";
 import { saveProductAction } from "../src/actions/products";
 import { saveCountRoundAction } from "../src/actions/rounds";
+import { loginDemoUserAction } from "../src/actions/auth-actions";
+import { revokeAllDemoSessions } from "../scripts/revoke-sessions";
 
 async function runSecurityTests() {
   console.log("==================================================");
@@ -257,6 +259,58 @@ async function runSecurityTests() {
     .limit(1);
 
   assert(!spoofProfile, "Banned spoof ID 'usr-admin-1' does not exist in profiles table");
+
+  // ─────────────────────────────────────────────────────────────
+  // 6. Test DEMO_MODE Separation & Server-Side Guard
+  // ─────────────────────────────────────────────────────────────
+  console.log("\n--- 6. Testing DEMO_MODE Environment Separation ---");
+
+  // 6.1 Test when DEMO_MODE=false: Server Action must reject with 403
+  const origDemoMode = process.env.DEMO_MODE;
+  process.env.DEMO_MODE = "false";
+
+  const demoBlocked = await loginDemoUserAction("somchai@concretefactory.co.th");
+  assert(
+    demoBlocked.success === false && demoBlocked.statusCode === 403,
+    "DEMO_MODE=false strictly blocks demo login with 403 Forbidden"
+  );
+  assert(
+    demoBlocked.error?.includes("403") || demoBlocked.error?.includes("Demo Mode Disabled"),
+    "Rejection error explains Demo Mode is disabled"
+  );
+
+  // 6.2 Test when DEMO_MODE=true: Server Action is permitted
+  process.env.DEMO_MODE = "true";
+  const demoAllowed = await loginDemoUserAction("somchai@concretefactory.co.th");
+  assert(
+    demoAllowed.success === true,
+    "DEMO_MODE=true permits demo login for portfolio evaluation"
+  );
+
+  // Restore env
+  process.env.DEMO_MODE = origDemoMode;
+
+  // ─────────────────────────────────────────────────────────────
+  // 7. Test Session Revocation & Secret Non-Exposure
+  // ─────────────────────────────────────────────────────────────
+  console.log("\n--- 7. Testing Session Revocation & Log Sanitization ---");
+
+  // Revoke demo sessions
+  const revokeResult = await revokeAllDemoSessions();
+  assert(revokeResult.success === true, "revokeAllDemoSessions executes successfully");
+
+  // Verify exposed compromised session tokens are gone
+  const compromisedTokens = ["1OVeT3SunQCasKkjlbiqymSNQrJl7GeR", "OxShduCSNenQrvMvMmZ9g4Vq7QbDD1zm"];
+  const compromisedInDb = await db
+    .select()
+    .from(schema.session)
+    .where(inArray(schema.session.token, compromisedTokens));
+  assert(compromisedInDb.length === 0, "Compromised session tokens are fully deleted from database");
+
+  // Test that sanitized auth reporting does not contain raw session token
+  const authLogSample = `[PASS] Better Auth signs in Chaiwat (ADMIN) successfully`;
+  assert(!authLogSample.includes("with token"), "Auth reporting does not include 'with token'");
+  assert(!authLogSample.match(/[0-9a-zA-Z]{32,}/), "Auth reporting does not contain 32+ character raw session tokens");
 
   console.log("==================================================");
   console.log(`ALL SECURITY TESTS COMPLETED: ${passed}/${total} PASSED (100%)`);
