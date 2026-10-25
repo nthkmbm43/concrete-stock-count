@@ -291,8 +291,6 @@ export class DataProvider {
       await submitStockCountAction({
         roundId: params.round_id,
         productId: params.item_id,
-        userId: user.id,
-        userName: user.full_name,
         countedLocations: (params.locations || []).map((l) => ({
           storageLocationId: l.storage_location_id,
           sourceType: l.source_type === "NEW" ? "OBSERVED_NEW" : "MASTER",
@@ -401,8 +399,6 @@ export class DataProvider {
     try {
       await adjustStockAction({
         productId: params.item_id,
-        adminUserId: user.id,
-        adminRole: user.role,
         newQuantity: params.new_quantity,
         reason: params.reason,
       });
@@ -520,7 +516,6 @@ export class DataProvider {
     // Call server action for PostgreSQL persistence
     try {
       await saveProductAction({
-        adminRole: user.role,
         id: item.id,
         sku: saved.sku,
         name: saved.name,

@@ -125,17 +125,20 @@ erDiagram
 
 ## 6. Demo Accounts
 
-For evaluation and testing, the application includes pre-seeded demo accounts:
+For evaluation and testing, the application includes pre-seeded demo accounts with Better Auth credentials:
 
-| Role | Name | Email | Default Plant | Capabilities |
-|---|---|---|---|---|
-| **ADMIN** | ชัยวัฒน์ (หัวหน้าคลัง) | `admin@concretefactory.co.th` | โรง 1 | Full administrative rights (Product CRUD, Adjustments, Round control) |
-| **STAFF** | สมชาย ใจมั่นคง | `somchai@concretefactory.co.th` | โรง 1 | Raw materials warehouse counting |
-| **STAFF** | วิชัย สุวรรณโชติ | `wichai@concretefactory.co.th` | โรง 2 | Finished goods counting (featured post `FP-250-18`) |
-| **STAFF** | นิตยา รักษ์พงษ์ | `nittaya@concretefactory.co.th` | โรง 3 | Hollowcore slab warehouse counting |
-| **STAFF** | สมพร ทรัพย์ประเสริฐ | `somporn@concretefactory.co.th` | โรง 4 | L-Wall & pipe warehouse counting |
+| Role | Name | Email | Password | Default Plant | Capabilities |
+|---|---|---|---|---|---|
+| **ADMIN** | ชัยวัฒน์ (หัวหน้าคลัง) | `admin@concretefactory.co.th` | `Demo1234!` | โรง 1 | Full administrative rights (Product CRUD, Stock Adjustments, Round control, Data Import) |
+| **STAFF** | สมชาย ใจมั่นคง | `somchai@concretefactory.co.th` | `Demo1234!` | โรง 1 | Raw materials warehouse counting |
+| **STAFF** | วิชัย สุวรรณโชติ | `wichai@concretefactory.co.th` | `Demo1234!` | โรง 2 | Finished goods counting (featured post `FP-250-18`) |
+| **STAFF** | นิตยา รักษ์พงษ์ | `nittaya@concretefactory.co.th` | `Demo1234!` | โรง 3 | Hollowcore slab warehouse counting |
+| **STAFF** | สมพร ทรัพย์ประเสริฐ | `somporn@concretefactory.co.th` | `Demo1234!` | โรง 4 | L-Wall & pipe warehouse counting |
 
-> **Note**: Tapping the user avatar in the top app bar opens the Demo Switcher, allowing one-click switching between accounts or registering a new `STAFF` account.
+> **Note**: Tapping the user avatar in the top app bar opens the Demo Switcher, allowing one-click switching between accounts with genuine signed Better Auth session cookies (`better-auth.session_token`).
+>
+> **Portfolio & Demonstration Disclaimer**:
+> This application is built as a production-grade full-stack portfolio demonstrating real-world mobile warehouse stock counting and inventory management systems. Any internal stock numbers, yard layouts, and employee credentials provided are demonstration data for testing and portfolio showcase purposes.
 
 ---
 
@@ -164,7 +167,7 @@ For evaluation and testing, the application includes pre-seeded demo accounts:
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/concrete-stock-count.git
+git clone https://github.com/nthkmbm43/concrete-stock-count.git
 cd concrete-stock-count
 ```
 
@@ -326,17 +329,24 @@ A comprehensive 7-step data onboarding workflow engineered for warehouse data bu
 
 ---
 
-## 9. Deployment on Vercel
+## 9. Deployment & Live URLs
 
-1. Push your repository to **GitHub**.
-2. Go to [Vercel Dashboard](https://vercel.com/) and click **"New Project"**.
-3. Import your `concrete-stock-count` repository.
-4. Under **Environment Variables**, configure:
-   - `DATABASE_URL`: Your Neon PostgreSQL Connection String (Singapore or nearest region)
-   - `BETTER_AUTH_SECRET`: A secure 32+ character random string
-   - `BETTER_AUTH_URL`: Your production Vercel URL (e.g. `https://concrete-stock-count.vercel.app`)
-   - `NEXT_PUBLIC_APP_URL`: Your production Vercel URL
-5. Click **Deploy**. Vercel will build and deploy the Next.js application automatically!
+- **Production URL**: [https://store-app2.vercel.app](https://store-app2.vercel.app)
+- **GitHub Repository**: [https://github.com/nthkmbm43/concrete-stock-count](https://github.com/nthkmbm43/concrete-stock-count)
+- **Database**: Neon Serverless PostgreSQL (`ep-fragrant-feather-at378ccb.c-9.us-east-1.aws.neon.tech`)
+
+### Automated Test Suites
+Run all security and data import automated tests:
+```bash
+# Run complete test suite (45 Security + 51 Import tests)
+npm test
+
+# Run security hardening tests only (Session, RBAC, 401/403, Zero Spoofing)
+npm run test:security
+
+# Run data import & branding tests only (Excel, CSV, Normalization, KCON)
+npm run test:import
+```
 
 ---
 

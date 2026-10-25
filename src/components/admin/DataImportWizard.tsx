@@ -184,8 +184,6 @@ export function DataImportWizard({
       duplicatePolicy,
       items: validationResult.items,
       errors: validationResult.errors,
-      userId: currentUser?.id,
-      userName: currentUser?.name,
     });
 
     setIsExecuting(false);

@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { ConcreteRealtimeProvider } from "@/lib/realtime/RealtimeProvider";
 import { broadcastRealtimeEvent, subscribeRealtimeEvents } from "@/lib/realtime/client";
 import { adjustStockAction, submitStockCountAction, saveProductAction, saveCountRoundAction } from "@/actions/stock-actions";
+import { loginDemoUserAction } from "@/actions/auth-actions";
 import { toast } from "sonner";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
@@ -185,10 +186,26 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
     };
   }, [refreshData]);
 
+  // Initialize session cookie on mount
+  useEffect(() => {
+    loginDemoUserAction(currentUser.email).catch((err) => {
+      console.debug("Auto-session init error:", err);
+    });
+  }, [currentUser.email]);
+
   // Handle User Switch
-  const handleSelectUser = (user: UserProfile) => {
+  const handleSelectUser = async (user: UserProfile) => {
     setCurrentUser(user);
     DataProvider.setCurrentUser(user);
+    try {
+      const res = await loginDemoUserAction(user.email);
+      if (res.success && res.user) {
+        setCurrentUser(res.user);
+        DataProvider.setCurrentUser(res.user);
+      }
+    } catch (err) {
+      console.warn("Failed to set demo user session cookie:", err);
+    }
     toast.success(`สลับเข้าใช้งานในชื่อ: ${user.full_name} (${user.role})`);
   };
 
@@ -299,8 +316,6 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
       // 3. Server Transaction
       await adjustStockAction({
         productId: params.item_id,
-        adminUserId: currentUser.id,
-        adminRole: currentUser.role,
         newQuantity: params.new_quantity,
         reason: params.reason,
       });
@@ -339,6 +354,18 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
 
   // Handle Create Round
   const handleCreateRound = async (roundData: Omit<CountRound, "id" | "created_at">) => {
+    try {
+      await saveCountRoundAction({
+        name: roundData.name || roundData.title,
+        type: (roundData.type as any) || "MONTHLY",
+        status: "OPEN",
+        plantIds: roundData.plant_ids || [1, 2, 3, 4],
+        startDate: roundData.start_date || new Date().toISOString().split("T")[0],
+        endDate: roundData.end_date || new Date().toISOString().split("T")[0],
+      });
+    } catch (err) {
+      console.warn("Server action save count round error:", err);
+    }
     const newRound: CountRound = {
       ...roundData,
       id: "round-" + Math.random().toString(36).substring(2, 8),

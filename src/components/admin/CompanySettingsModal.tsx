@@ -22,7 +22,6 @@ export interface CompanySettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialSettings: CompanySettingsData;
-  adminRole: string;
   onSuccess?: (updated: CompanySettingsData) => void;
 }
 
@@ -30,7 +29,6 @@ export function CompanySettingsModal({
   isOpen,
   onClose,
   initialSettings,
-  adminRole,
   onSuccess,
 }: CompanySettingsModalProps) {
   const [formData, setFormData] = useState<CompanySettingsData>(initialSettings);
@@ -68,7 +66,7 @@ export function CompanySettingsModal({
     setIsSubmitting(true);
     setFeedback(null);
 
-    const res = await updateCompanySettingsAction(formData, adminRole);
+    const res = await updateCompanySettingsAction(formData);
     setIsSubmitting(false);
 
     if (res.success) {

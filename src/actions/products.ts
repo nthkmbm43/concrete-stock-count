@@ -3,9 +3,10 @@
 import { db, schema, isDatabaseConfigured } from "@/db";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth/server";
+import { UnauthorizedError, ForbiddenError } from "@/lib/auth/permissions";
 
 export interface SaveProductInput {
-  adminRole: string;
   id?: string;
   sku: string;
   name: string;
@@ -26,15 +27,28 @@ export interface SaveProductInput {
   defaultZone?: string;
 }
 
+/**
+ * Admin Product Management Action
+ * Identity & ADMIN authorization strictly verified on server via Better Auth + DB.
+ */
 export async function saveProductAction(input: SaveProductInput) {
-  if (input.adminRole !== "ADMIN") {
-    return { success: false, error: "Unauthorized: Admin privileges required" };
-  }
-
   try {
+    // 1. Authenticate & Authorize strictly on server
+    const admin = await requireAdmin();
+
+    // 2. Validate input
+    if (!input.sku?.trim()) {
+      return { success: false, error: "กรุณาระบุรหัสสินค้า (SKU)" };
+    }
+    if (!input.name?.trim()) {
+      return { success: false, error: "กรุณาระบุชื่อสินค้า" };
+    }
+    if (!input.plantId || input.plantId < 1 || input.plantId > 4) {
+      return { success: false, error: "กรุณาระบุโรงงานให้ถูกต้อง (1-4)" };
+    }
+
     const now = new Date();
-    const prodId =
-      input.id || "prod-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const prodId = input.id || `prod-${crypto.randomUUID()}`;
 
     if (isDatabaseConfigured && db) {
       const isNew = !input.id;
@@ -45,7 +59,7 @@ export async function saveProductAction(input: SaveProductInput) {
             id: prodId,
             sku: input.sku.toUpperCase().trim(),
             name: input.name.trim(),
-            categoryId: input.categoryId || "finished_goods",
+            categoryId: input.categoryId || "fences",
             plantId: input.plantId,
             variant: input.variant || "-",
             heightValue: input.heightValue || null,
@@ -62,26 +76,32 @@ export async function saveProductAction(input: SaveProductInput) {
           });
 
           if (input.defaultLock) {
-            const locId = "loc-" + Math.random().toString(36).slice(2, 9);
-            await tx.insert(schema.storageLocations).values({
-              id: locId,
-              plantId: input.plantId,
-              zone: input.defaultZone || "Zone A",
-              lockCode: input.defaultLock,
-              rowCode: input.defaultRow || "1",
-              createdAt: now,
-              updatedAt: now,
-            });
+            const locId = `loc-${input.plantId}-${input.defaultLock.toLowerCase().replace(/[^a-z0-9]/g, "")}-${input.defaultRow || "1"}`;
+            await tx
+              .insert(schema.storageLocations)
+              .values({
+                id: locId,
+                plantId: input.plantId,
+                zone: input.defaultZone || "Yard-1",
+                lockCode: input.defaultLock.trim(),
+                rowCode: input.defaultRow?.trim() || "1",
+                createdAt: now,
+                updatedAt: now,
+              })
+              .onConflictDoNothing();
 
-            await tx.insert(schema.productLocations).values({
-              id: "pl-" + Math.random().toString(36).slice(2, 9),
-              productId: prodId,
-              storageLocationId: locId,
-              expectedQuantity: input.currentQuantity || 0,
-              isPrimary: true,
-              createdAt: now,
-              updatedAt: now,
-            });
+            await tx
+              .insert(schema.productLocations)
+              .values({
+                id: `pl-${prodId}-0`,
+                productId: prodId,
+                storageLocationId: locId,
+                expectedQuantity: input.currentQuantity || 0,
+                isPrimary: true,
+                createdAt: now,
+                updatedAt: now,
+              })
+              .onConflictDoNothing();
           }
         });
       } else {
@@ -89,7 +109,7 @@ export async function saveProductAction(input: SaveProductInput) {
           .update(schema.products)
           .set({
             name: input.name.trim(),
-            categoryId: input.categoryId || "finished_goods",
+            categoryId: input.categoryId || "fences",
             plantId: input.plantId,
             variant: input.variant || "-",
             heightValue: input.heightValue || null,
@@ -107,12 +127,22 @@ export async function saveProductAction(input: SaveProductInput) {
     }
 
     revalidatePath("/");
-    return { success: true, productId: prodId };
-  } catch (error) {
+    revalidatePath("/admin/products");
+    revalidatePath("/reports/print");
+
+    return {
+      success: true,
+      productId: prodId,
+      savedBy: admin.fullName,
+    };
+  } catch (error: any) {
+    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+      return { success: false, error: error.message, statusCode: error.statusCode };
+    }
     console.error("saveProductAction error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to save product",
+      error: error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการบันทึกสินค้า",
     };
   }
 }

@@ -3,6 +3,8 @@
 import { db, schema, isDatabaseConfigured } from "@/db";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireStaffOrAdmin } from "@/lib/auth/server";
+import { UnauthorizedError, ForbiddenError } from "@/lib/auth/permissions";
 
 export interface CountLocationInput {
   storageLocationId?: string;
@@ -20,18 +22,31 @@ export interface CountLocationInput {
 export interface SubmitCountInput {
   roundId: string;
   productId: string;
-  userId: string;
-  userName: string;
   countedLocations: CountLocationInput[];
   notes?: string;
+  // Optional client-hint for legacy callers; server MUST ignore and use trusted session
+  userId?: string;
+  userName?: string;
 }
 
 /**
- * 32. DATABASE TRANSACTION & 33. ONE ACTION = ONE MUTATION FLOW & 34. BATCH WRITES
- * Executes full stock count submission in a single atomic transaction with batch writes.
+ * 32. DATABASE TRANSACTION: Stock Count Submission
+ * User identity is strictly resolved from Better Auth server session.
+ * Client-provided userId/userName are discarded.
  */
 export async function submitStockCountAction(input: SubmitCountInput) {
   try {
+    // 1. Authenticate user from Server Session
+    const user = await requireStaffOrAdmin();
+
+    // 2. Validate input
+    if (!input.roundId?.trim()) {
+      return { success: false, error: "กรุณาระบุรอบการตรวจนับ (Round ID)" };
+    }
+    if (!input.productId?.trim()) {
+      return { success: false, error: "กรุณาระบุรหัสสินค้า (Product ID)" };
+    }
+
     const totalCounted = input.countedLocations.reduce(
       (sum, loc) => sum + loc.countedQuantity,
       0
@@ -41,17 +56,17 @@ export async function submitStockCountAction(input: SubmitCountInput) {
       0
     );
     const totalDiff = totalCounted - totalPrevious;
-    const countId = "count-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const countId = `count-${crypto.randomUUID()}`;
     const now = new Date();
 
     if (isDatabaseConfigured && db) {
       await db.transaction(async (tx) => {
-        // 1. Insert stock_counts record
+        // 1. Insert stock_counts record using trusted user.id
         await tx.insert(schema.stockCounts).values({
           id: countId,
           roundId: input.roundId,
           productId: input.productId,
-          userId: input.userId,
+          userId: user.id,
           previousQuantity: totalPrevious,
           countedQuantity: totalCounted,
           difference: totalDiff,
@@ -62,15 +77,15 @@ export async function submitStockCountAction(input: SubmitCountInput) {
           updatedAt: now,
         });
 
-        // 2. Batch insert stock_count_locations records (Rule 34: BATCH WRITES)
+        // 2. Batch insert stock_count_locations records
         if (input.countedLocations.length > 0) {
           await tx.insert(schema.stockCountLocations).values(
             input.countedLocations.map((loc) => ({
-              id: "scl-" + Math.random().toString(36).slice(2, 9),
+              id: `scl-${crypto.randomUUID()}`,
               stockCountId: countId,
               storageLocationId: loc.storageLocationId || null,
               sourceType: loc.sourceType || "MASTER",
-              zone: loc.zone || "Zone A",
+              zone: loc.zone || "Yard-1",
               lockCode: loc.lockCode,
               rowCode: loc.rowCode,
               previousQuantity: loc.previousQuantity,
@@ -90,7 +105,7 @@ export async function submitStockCountAction(input: SubmitCountInput) {
           .set({
             currentQuantity: totalCounted,
             lastCountedAt: now,
-            lastCountedBy: input.userName,
+            lastCountedBy: user.fullName,
             updatedAt: now,
           })
           .where(eq(schema.products.id, input.productId));
@@ -98,19 +113,26 @@ export async function submitStockCountAction(input: SubmitCountInput) {
     }
 
     revalidatePath("/");
+    revalidatePath("/history");
+    revalidatePath("/reports/print");
+
     return {
       success: true,
       countId,
       countedQuantity: totalCounted,
       previousQuantity: totalPrevious,
       difference: totalDiff,
+      submittedBy: user.fullName,
       submittedAt: now.toISOString(),
     };
-  } catch (error) {
+  } catch (error: any) {
+    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+      return { success: false, error: error.message, statusCode: error.statusCode };
+    }
     console.error("submitStockCountAction error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to submit count",
+      error: error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการบันทึกยอดนับ",
     };
   }
 }

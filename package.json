@@ -11,7 +11,10 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test:security": "tsx test/security-test.ts",
+    "test:import": "tsx test/import-test.ts",
+    "test": "tsx test/security-test.ts && tsx test/import-test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.0",

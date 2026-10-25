@@ -1,51 +1,49 @@
 "use server";
 
 import { db, schema, isDatabaseConfigured } from "@/db";
-import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { CompanySettingsData, DEFAULT_KCON_COMPANY_SETTINGS } from "@/db/queries/company";
+import { requireAdmin } from "@/lib/auth/server";
+import { UnauthorizedError, ForbiddenError } from "@/lib/auth/permissions";
 
-export async function updateCompanySettingsAction(
-  data: Partial<CompanySettingsData>,
-  adminRole: string
-) {
-  if (adminRole !== "ADMIN") {
-    return { success: false, error: "ต้องใช้สิทธิ์ผู้ดูแลระบบ (ADMIN) ในการแก้ไขข้อมูลองค์กร" };
-  }
-
+/**
+ * 7, 8. Admin Company Settings Update
+ * Identity & ADMIN authorization strictly verified on the server via Better Auth + DB.
+ * Client cannot pass or spoof role.
+ */
+export async function updateCompanySettingsAction(data: Partial<CompanySettingsData>) {
   try {
+    // 1. Authenticate & Authorize strictly on server
+    const admin = await requireAdmin();
     const now = new Date();
+
+    // 2. Sanitize and validate input
+    const sanitizedData = {
+      companyNameTh: data.companyNameTh?.trim() || DEFAULT_KCON_COMPANY_SETTINGS.companyNameTh,
+      companyNameEn: data.companyNameEn?.trim() || DEFAULT_KCON_COMPANY_SETTINGS.companyNameEn,
+      brandName: data.brandName?.trim() || DEFAULT_KCON_COMPANY_SETTINGS.brandName,
+      addressTh: data.addressTh?.trim() || DEFAULT_KCON_COMPANY_SETTINGS.addressTh,
+      phone: data.phone?.trim() || DEFAULT_KCON_COMPANY_SETTINGS.phone,
+      email: data.email?.trim() || DEFAULT_KCON_COMPANY_SETTINGS.email,
+      website: data.website?.trim() || DEFAULT_KCON_COMPANY_SETTINGS.website,
+      logoUrl: data.logoUrl !== undefined ? data.logoUrl : null,
+      reportFooter: data.reportFooter?.trim() || DEFAULT_KCON_COMPANY_SETTINGS.reportFooter,
+      dataSourceNotice:
+        data.dataSourceNotice?.trim() || DEFAULT_KCON_COMPANY_SETTINGS.dataSourceNotice,
+    };
 
     if (isDatabaseConfigured && db) {
       await db
         .insert(schema.companySettings)
         .values({
           id: "default",
-          companyNameTh: data.companyNameTh || DEFAULT_KCON_COMPANY_SETTINGS.companyNameTh,
-          companyNameEn: data.companyNameEn || DEFAULT_KCON_COMPANY_SETTINGS.companyNameEn,
-          brandName: data.brandName || DEFAULT_KCON_COMPANY_SETTINGS.brandName,
-          addressTh: data.addressTh || DEFAULT_KCON_COMPANY_SETTINGS.addressTh,
-          phone: data.phone || DEFAULT_KCON_COMPANY_SETTINGS.phone,
-          email: data.email || DEFAULT_KCON_COMPANY_SETTINGS.email,
-          website: data.website || DEFAULT_KCON_COMPANY_SETTINGS.website,
-          logoUrl: data.logoUrl !== undefined ? data.logoUrl : null,
-          reportFooter: data.reportFooter || DEFAULT_KCON_COMPANY_SETTINGS.reportFooter,
-          dataSourceNotice: data.dataSourceNotice || DEFAULT_KCON_COMPANY_SETTINGS.dataSourceNotice,
+          ...sanitizedData,
           updatedAt: now,
         })
         .onConflictDoUpdate({
           target: schema.companySettings.id,
           set: {
-            companyNameTh: data.companyNameTh,
-            companyNameEn: data.companyNameEn,
-            brandName: data.brandName,
-            addressTh: data.addressTh,
-            phone: data.phone,
-            email: data.email,
-            website: data.website,
-            logoUrl: data.logoUrl,
-            reportFooter: data.reportFooter,
-            dataSourceNotice: data.dataSourceNotice,
+            ...sanitizedData,
             updatedAt: now,
           },
         });
@@ -54,10 +52,17 @@ export async function updateCompanySettingsAction(
     revalidatePath("/");
     revalidatePath("/admin/company");
     revalidatePath("/admin/import");
+    revalidatePath("/reports/print");
 
-    return { success: true };
+    return {
+      success: true,
+      updatedBy: admin.fullName,
+    };
   } catch (err: any) {
+    if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
+      return { success: false, error: err.message, statusCode: err.statusCode };
+    }
     console.error("updateCompanySettingsAction error:", err);
-    return { success: false, error: err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูลองค์กร" };
+    return { success: false, error: "เกิดข้อผิดพลาดในการบันทึกข้อมูลองค์กร" };
   }
 }

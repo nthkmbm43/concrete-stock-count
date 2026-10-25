@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getReportData, ReportQueryOptions } from "@/db/queries/reports";
 import { generateStockCountPdf } from "@/lib/export/pdf-generator";
+import { getOptionalUser } from "@/lib/auth/server";
 
 export async function GET(req: NextRequest) {
   try {
+    const user = await getOptionalUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: "กรุณาเข้าสู่ระบบก่อนดาวน์โหลดรายงาน (401 Unauthorized)" },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
 
     const scope = (searchParams.get("scope") as "current_stock" | "count_round") || "count_round";

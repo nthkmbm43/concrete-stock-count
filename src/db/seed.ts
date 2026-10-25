@@ -5,6 +5,7 @@ dotenv.config();
 import { db } from "./index";
 import * as schema from "./schema";
 import { sql } from "drizzle-orm";
+import { hashPassword } from "better-auth/crypto";
 
 export async function runSeed() {
   if (!db) {
@@ -261,6 +262,24 @@ export async function runSeed() {
           role: u.role,
           plantId: u.plantId,
           phone: u.phone,
+        },
+      });
+
+    // Upsert Better Auth Credential Account
+    const defaultPasswordHash = await hashPassword("Demo1234!");
+    await db
+      .insert(schema.account)
+      .values({
+        id: `acc-${u.id}`,
+        accountId: u.id,
+        providerId: "credential",
+        userId: u.id,
+        password: defaultPasswordHash,
+      })
+      .onConflictDoUpdate({
+        target: schema.account.id,
+        set: {
+          password: defaultPasswordHash,
         },
       });
   }

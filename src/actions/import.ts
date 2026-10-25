@@ -13,12 +13,18 @@ import {
 } from "@/lib/import/engine";
 import { CanonicalFieldKey } from "@/lib/import/aliases";
 import { escapeFormulaInjection } from "@/lib/import/normalizer";
+import { requireAdmin, requireStaffOrAdmin } from "@/lib/auth/server";
+import { UnauthorizedError, ForbiddenError } from "@/lib/auth/permissions";
 
 /**
  * 1. Parse uploaded Excel / CSV file
+ * Only authenticated administrators may parse import files.
  */
 export async function parseImportFileAction(formData: FormData) {
   try {
+    // Enforce admin permission
+    await requireAdmin();
+
     const file = formData.get("file") as File | null;
     if (!file) {
       return { success: false, error: "ไม่พบไฟล์ที่อัปโหลด" };
@@ -52,6 +58,9 @@ export async function parseImportFileAction(formData: FormData) {
       previewRows: result.previewRows,
     };
   } catch (err: any) {
+    if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
+      return { success: false, error: err.message, statusCode: err.statusCode };
+    }
     console.error("parseImportFileAction error:", err);
     return { success: false, error: err.message || "เกิดข้อผิดพลาดในการอ่านไฟล์" };
   }
@@ -66,6 +75,8 @@ export async function validateImportDataAction(params: {
   duplicatePolicy: "skip" | "update" | "create_only";
 }) {
   try {
+    await requireAdmin();
+
     const { rawRows, mapping, duplicatePolicy } = params;
 
     // Extract all SKUs present in rawRows
@@ -85,7 +96,6 @@ export async function validateImportDataAction(params: {
     const existingSkusSet = new Set<string>();
 
     if (uniqueSkus.length > 0 && isDatabaseConfigured && db) {
-      // Chunk queries by 500 to avoid parameter limit in single query
       const chunkSize = 500;
       for (let i = 0; i < uniqueSkus.length; i += chunkSize) {
         const chunk = uniqueSkus.slice(i, i + chunkSize);
@@ -111,6 +121,9 @@ export async function validateImportDataAction(params: {
       ...validationResult,
     };
   } catch (err: any) {
+    if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
+      return { success: false, error: err.message, statusCode: err.statusCode };
+    }
     console.error("validateImportDataAction error:", err);
     return { success: false, error: err.message || "เกิดข้อผิดพลาดในการตรวจสอบข้อมูล" };
   }
@@ -118,6 +131,8 @@ export async function validateImportDataAction(params: {
 
 /**
  * 3. Execute batch database import within a transaction
+ * Identity & ADMIN authorization strictly verified on server via Better Auth + DB.
+ * Audit logs record the authentic administrator identity from session.
  */
 export async function executeBatchImportAction(params: {
   fileName: string;
@@ -126,23 +141,18 @@ export async function executeBatchImportAction(params: {
   duplicatePolicy: "skip" | "update" | "create_only";
   items: ValidatedImportItem[];
   errors: RowErrorItem[];
+  // Optional client parameters are intentionally ignored; server uses authenticated admin
   userId?: string;
   userName?: string;
 }) {
   try {
-    const {
-      fileName,
-      fileSize,
-      sheetName,
-      duplicatePolicy,
-      items,
-      errors,
-      userId,
-      userName,
-    } = params;
+    // 1. Authenticate & Authorize strictly on server
+    const admin = await requireAdmin();
+
+    const { fileName, fileSize, sheetName, duplicatePolicy, items, errors } = params;
 
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const randomSuffix = Math.random().toString(36).slice(2, 5).toUpperCase();
+    const randomSuffix = crypto.randomUUID().slice(0, 8).toUpperCase();
     const batchId = `IMP-${dateStr}-${randomSuffix}`;
     const now = new Date();
 
@@ -152,7 +162,6 @@ export async function executeBatchImportAction(params: {
 
     if (isDatabaseConfigured && db) {
       await db.transaction(async (tx) => {
-        // Fetch all existing categories & units to validate FKs
         const existingCats = await tx.select().from(schema.productCategories);
         const catMap = new Map(existingCats.map((c) => [c.id.toLowerCase(), c.id]));
 
@@ -165,13 +174,9 @@ export async function executeBatchImportAction(params: {
             continue;
           }
 
-          // Fallback category if not found
           let resolvedCatId = catMap.get(item.categoryId.toLowerCase()) || "fences";
-
-          // Fallback unit if not found
           let resolvedUnitId = unitMap.get(item.stockUnitId.toLowerCase());
           if (!resolvedUnitId) {
-            // Auto-insert unit to prevent FK constraint failure
             resolvedUnitId = item.stockUnitId;
             await tx
               .insert(schema.units)
@@ -187,7 +192,7 @@ export async function executeBatchImportAction(params: {
           }
 
           if (item.action === "create") {
-            const prodId = `prod-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+            const prodId = `prod-${crypto.randomUUID()}`;
 
             await tx.insert(schema.products).values({
               id: prodId,
@@ -214,7 +219,6 @@ export async function executeBatchImportAction(params: {
               const loc = item.locations[idx];
               const locId = `loc-${item.plantId}-${loc.lockCode.toLowerCase().replace(/[^a-z0-9]/g, "")}-${loc.rowCode}`;
 
-              // Ensure storage location exists
               await tx
                 .insert(schema.storageLocations)
                 .values({
@@ -230,7 +234,6 @@ export async function executeBatchImportAction(params: {
                 })
                 .onConflictDoNothing();
 
-              // Link product location
               const plId = `pl-${prodId}-${idx}`;
               await tx
                 .insert(schema.productLocations)
@@ -247,13 +250,13 @@ export async function executeBatchImportAction(params: {
                 .onConflictDoNothing();
             }
 
-            // Record initial stock adjustment audit
+            // Record initial stock adjustment audit using trusted admin.id
             if (item.currentQuantity > 0) {
-              const adjId = `adj-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+              const adjId = `adj-${crypto.randomUUID()}`;
               await tx.insert(schema.stockAdjustments).values({
                 id: adjId,
                 productId: prodId,
-                adminUserId: userId || "usr-admin-1",
+                adminUserId: admin.id,
                 oldQuantity: 0,
                 newQuantity: item.currentQuantity,
                 difference: item.currentQuantity,
@@ -286,13 +289,13 @@ export async function executeBatchImportAction(params: {
                 })
                 .where(eq(schema.products.id, existing.id));
 
-              // Record stock adjustment if quantity changed
+              // Record stock adjustment with trusted admin.id
               if (oldQty !== newQty) {
-                const adjId = `adj-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+                const adjId = `adj-${crypto.randomUUID()}`;
                 await tx.insert(schema.stockAdjustments).values({
                   id: adjId,
                   productId: existing.id,
-                  adminUserId: userId || "usr-admin-1",
+                  adminUserId: admin.id,
                   oldQuantity: oldQty,
                   newQuantity: newQty,
                   difference: newQty - oldQty,
@@ -301,7 +304,6 @@ export async function executeBatchImportAction(params: {
                 });
               }
 
-              // Update or insert locations
               for (let idx = 0; idx < item.locations.length; idx++) {
                 const loc = item.locations[idx];
                 const locId = `loc-${item.plantId}-${loc.lockCode.toLowerCase().replace(/[^a-z0-9]/g, "")}-${loc.rowCode}`;
@@ -348,15 +350,15 @@ export async function executeBatchImportAction(params: {
           }
         }
 
-        // Insert audit log in importBatches
+        // Insert audit log in importBatches with trusted admin identity
         await tx.insert(schema.importBatches).values({
           id: batchId,
           fileName,
           fileSize,
           importType: "product_master",
           sheetName,
-          userId: userId || null,
-          userName: userName || "ผู้ดูแลระบบ",
+          userId: admin.id,
+          userName: admin.fullName,
           totalRows: items.length,
           successCount,
           skippedCount,
@@ -379,8 +381,12 @@ export async function executeBatchImportAction(params: {
       successCount,
       skippedCount,
       errorCount,
+      executedBy: admin.fullName,
     };
   } catch (err: any) {
+    if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
+      return { success: false, error: err.message, statusCode: err.statusCode };
+    }
     console.error("executeBatchImportAction error:", err);
     return { success: false, error: err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูลนำเข้า" };
   }
@@ -391,6 +397,8 @@ export async function executeBatchImportAction(params: {
  */
 export async function getImportHistoryAction() {
   try {
+    await requireStaffOrAdmin();
+
     if (!isDatabaseConfigured || !db) {
       return { success: true, batches: [] };
     }
@@ -403,6 +411,9 @@ export async function getImportHistoryAction() {
 
     return { success: true, batches };
   } catch (err: any) {
+    if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
+      return { success: false, error: err.message, batches: [] };
+    }
     console.error("getImportHistoryAction error:", err);
     return { success: false, error: err.message || "ไม่สามารถดึงประวัติการนำเข้าได้", batches: [] };
   }

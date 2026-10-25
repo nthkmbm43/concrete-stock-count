@@ -3,9 +3,10 @@
 import { db, schema, isDatabaseConfigured } from "@/db";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth/server";
+import { UnauthorizedError, ForbiddenError } from "@/lib/auth/permissions";
 
 export interface SaveRoundInput {
-  adminRole: string;
   id?: string;
   name: string;
   type: "MONTHLY" | "WEEKLY" | "RECOUNT" | "SPECIAL";
@@ -15,13 +16,24 @@ export interface SaveRoundInput {
   status?: "OPEN" | "CLOSED";
 }
 
+/**
+ * Admin Count Round Management Action
+ * Identity & ADMIN authorization strictly verified on server via Better Auth + DB.
+ */
 export async function saveCountRoundAction(input: SaveRoundInput) {
-  if (input.adminRole !== "ADMIN") {
-    return { success: false, error: "Unauthorized: Admin privileges required" };
-  }
-
   try {
-    const roundId = input.id || "round-" + Date.now().toString(36);
+    // 1. Authenticate & Authorize strictly on server
+    const admin = await requireAdmin();
+
+    // 2. Validate input
+    if (!input.name?.trim()) {
+      return { success: false, error: "กรุณาระบุชื่อรอบการตรวจนับ" };
+    }
+    if (!input.startDate || !input.endDate) {
+      return { success: false, error: "กรุณาระบุวันที่เริ่มต้นและสิ้นสุดรอบนับ" };
+    }
+
+    const roundId = input.id || `round-${crypto.randomUUID()}`;
     const now = new Date();
 
     if (isDatabaseConfigured && db) {
@@ -31,11 +43,12 @@ export async function saveCountRoundAction(input: SaveRoundInput) {
         if (isNew) {
           await tx.insert(schema.countRounds).values({
             id: roundId,
-            name: input.name,
+            name: input.name.trim(),
             type: input.type,
             startDate: input.startDate,
             endDate: input.endDate,
             status: input.status || "OPEN",
+            createdBy: admin.id,
             createdAt: now,
             updatedAt: now,
           });
@@ -43,7 +56,7 @@ export async function saveCountRoundAction(input: SaveRoundInput) {
           await tx
             .update(schema.countRounds)
             .set({
-              name: input.name,
+              name: input.name.trim(),
               type: input.type,
               startDate: input.startDate,
               endDate: input.endDate,
@@ -57,12 +70,12 @@ export async function saveCountRoundAction(input: SaveRoundInput) {
             .where(eq(schema.countRoundPlants.roundId, roundId));
         }
 
-        if (input.plantIds.length > 0) {
+        if (input.plantIds && input.plantIds.length > 0) {
           await tx.insert(schema.countRoundPlants).values(
-            input.plantIds.map((plantId) => ({
-              id: "crp-" + Math.random().toString(36).slice(2, 9),
+            input.plantIds.map((pId) => ({
+              id: `crp-${roundId}-${pId}`,
               roundId,
-              plantId,
+              plantId: pId,
             }))
           );
         }
@@ -70,12 +83,22 @@ export async function saveCountRoundAction(input: SaveRoundInput) {
     }
 
     revalidatePath("/");
-    return { success: true, roundId };
-  } catch (error) {
+    revalidatePath("/admin/rounds");
+    revalidatePath("/reports/print");
+
+    return {
+      success: true,
+      roundId,
+      savedBy: admin.fullName,
+    };
+  } catch (error: any) {
+    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+      return { success: false, error: error.message, statusCode: error.statusCode };
+    }
     console.error("saveCountRoundAction error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to save count round",
+      error: error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการบันทึกรอบนับ",
     };
   }
 }

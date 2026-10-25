@@ -1,8 +1,17 @@
 import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
+import { getOptionalUser } from "@/lib/auth/server";
 
 export async function GET() {
   try {
+    const user = await getOptionalUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: "กรุณาเข้าสู่ระบบก่อนดาวน์โหลด Template (401 Unauthorized)" },
+        { status: 401 }
+      );
+    }
+
     const workbook = new ExcelJS.Workbook();
     workbook.creator = "KCON Concrete Stock System";
     workbook.created = new Date();

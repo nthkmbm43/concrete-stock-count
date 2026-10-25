@@ -29,7 +29,7 @@ export interface DataImportPageClientProps {
 
 export function DataImportPageClient({
   initialCompanySettings,
-  currentUser = { id: "usr-admin-1", name: "สมชาย จัดการคลัง", role: "ADMIN" },
+  currentUser,
 }: DataImportPageClientProps) {
   const [activeTab, setActiveTab] = useState<"import" | "history" | "company">("import");
   const [companySettings, setCompanySettings] = useState<CompanySettingsData>(initialCompanySettings);
@@ -95,6 +95,20 @@ export function DataImportPageClient({
           {/* Decorative background circle */}
           <div className="absolute -right-12 -bottom-12 w-64 h-64 rounded-full bg-blue-500/10 blur-2xl pointer-events-none" />
         </div>
+
+        {currentUser?.role !== "ADMIN" && (
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3 shadow-xs">
+            <ShieldCheck className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold">จำกัดสิทธิ์เฉพาะผู้ดูแลระบบ (ADMIN ONLY)</p>
+              <p className="text-amber-800">
+                คุณเข้าสู่ระบบในฐานะ <strong>{currentUser?.name || "พนักงาน"}</strong> (สิทธิ์ {currentUser?.role || "STAFF"})
+                การดำเนินการบันทึกข้อมูลนำเข้าหรือแก้ไขข้อมูลบริษัทจะถูกปฏิเสธโดยเซิร์ฟเวอร์ (403 Forbidden)
+                หากต้องการดำเนินการ กรุณาสลับบัญชีเป็นแอดมิน (ชัยวัฒน์ หัวหน้าคลัง) จากหน้าแรก
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Navigation Tabs */}
         <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto no-scrollbar">
@@ -210,7 +224,6 @@ export function DataImportPageClient({
         isOpen={isCompanyModalOpen}
         onClose={() => setIsCompanyModalOpen(false)}
         initialSettings={companySettings}
-        adminRole={currentUser.role}
         onSuccess={(updated) => setCompanySettings(updated)}
       />
     </div>
