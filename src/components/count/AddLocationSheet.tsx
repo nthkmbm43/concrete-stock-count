@@ -12,6 +12,7 @@ interface AddLocationSheetProps {
   onOpenChange: (open: boolean) => void;
   defaultPlantId: number;
   unit: string;
+  existingLocations?: { lock_code: string; row_code: string }[];
   onAddLocation: (params: {
     plant_id: number;
     lock_code: string;
@@ -25,6 +26,7 @@ export const AddLocationSheet: React.FC<AddLocationSheetProps> = ({
   onOpenChange,
   defaultPlantId,
   unit,
+  existingLocations = [],
   onAddLocation,
 }) => {
   const [plantId, setPlantId] = useState(defaultPlantId);
@@ -34,19 +36,31 @@ export const AddLocationSheet: React.FC<AddLocationSheetProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!lockCode.trim() || !rowCode.trim()) {
+    const cleanLock = lockCode.trim().toUpperCase();
+    const cleanRow = rowCode.trim();
+
+    if (!cleanLock || !cleanRow) {
       toast.error("กรุณาระบุล็อคและแถวของจุดวาง");
+      return;
+    }
+
+    const isDuplicate = existingLocations.some(
+      (loc) => loc.lock_code.toUpperCase() === cleanLock && loc.row_code === cleanRow
+    );
+
+    if (isDuplicate) {
+      toast.error(`จุดวาง ล็อค ${cleanLock} แถว ${cleanRow} มีอยู่แล้ว กรุณาเลือกกลับไปแก้`);
       return;
     }
 
     onAddLocation({
       plant_id: plantId,
-      lock_code: lockCode.trim().toUpperCase(),
-      row_code: rowCode.trim(),
+      lock_code: cleanLock,
+      row_code: cleanRow,
       quantity: Math.max(0, quantity),
     });
 
-    toast.success(`เพิ่มจุดวาง ล็อค ${lockCode.trim().toUpperCase()} แถว ${rowCode.trim()} เรียบร้อยแล้ว`);
+    toast.success(`เพิ่มจุดวาง ล็อค ${cleanLock} แถว ${cleanRow} เรียบร้อยแล้ว`);
     setLockCode("");
     setRowCode("");
     setQuantity(0);

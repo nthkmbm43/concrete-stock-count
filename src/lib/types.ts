@@ -40,6 +40,8 @@ export interface ItemStorageLocation {
   lock_code: string;
   row_code: string;
   expected_quantity: number;
+  source_type?: "SYSTEM" | "NEW";
+  client_id?: string;
 }
 
 export interface InventoryItem {
@@ -95,6 +97,8 @@ export interface StockCountLocation {
   previous_quantity: number;
   counted_quantity: number;
   difference: number;
+  source_type?: "SYSTEM" | "NEW";
+  client_id?: string;
   created_at?: string;
 }
 
