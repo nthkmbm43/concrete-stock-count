@@ -15,6 +15,7 @@ import {
   Clock,
   User,
   Filter,
+  FileSpreadsheet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ interface StockViewProps {
   currentUser: UserProfile;
   onAdjustStock: (item: InventoryItem) => void;
   onCountItem?: (item: InventoryItem) => void;
+  onOpenExport?: () => void;
 }
 
 export const StockView: React.FC<StockViewProps> = ({
@@ -32,6 +34,7 @@ export const StockView: React.FC<StockViewProps> = ({
   currentUser,
   onAdjustStock,
   onCountItem,
+  onOpenExport,
 }) => {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
@@ -86,13 +89,25 @@ export const StockView: React.FC<StockViewProps> = ({
             </p>
           </div>
 
-          <div className="text-right">
-            <span className="text-2xl font-black text-slate-900 block">
-              {filteredItems.length}
-            </span>
-            <span className="text-[11px] font-semibold text-slate-400">
-              จาก {items.length} รายการ
-            </span>
+          <div className="text-right flex flex-col items-end gap-1">
+            <div>
+              <span className="text-2xl font-black text-slate-900 block">
+                {filteredItems.length}
+              </span>
+              <span className="text-[11px] font-semibold text-slate-400">
+                จาก {items.length} รายการ
+              </span>
+            </div>
+            {onOpenExport && (
+              <button
+                type="button"
+                onClick={onOpenExport}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer mt-1"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5" />
+                ส่งออกสต๊อก
+              </button>
+            )}
           </div>
         </div>
       </div>

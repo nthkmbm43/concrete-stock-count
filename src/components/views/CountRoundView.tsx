@@ -13,7 +13,7 @@ import { PlantCard } from "@/components/count/PlantCard";
 import { ProductCard } from "@/components/count/ProductCard";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Search, Filter, Layers, ArrowLeft, RefreshCw } from "lucide-react";
+import { Search, Filter, Layers, ArrowLeft, RefreshCw, FileSpreadsheet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -26,6 +26,7 @@ interface CountRoundViewProps {
   selectedPlantId: number | null;
   onSelectPlant: (plantId: number | null) => void;
   onCountItem: (item: InventoryItem) => void;
+  onOpenExport?: () => void;
 }
 
 export const CountRoundView: React.FC<CountRoundViewProps> = ({
@@ -37,6 +38,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
   selectedPlantId,
   onSelectPlant,
   onCountItem,
+  onOpenExport,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -155,6 +157,20 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
               className="h-2.5 bg-slate-100"
             />
           </div>
+
+          {onOpenExport && (
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
+              <span className="text-[11px] font-medium text-slate-500">รายงานสรุปผลการนับ & สต๊อก</span>
+              <button
+                type="button"
+                onClick={onOpenExport}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5" />
+                ส่งออก / พิมพ์รายงาน
+              </button>
+            </div>
+          )}
         </div>
 
         <div>
@@ -194,9 +210,22 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
             <ArrowLeft className="h-4 w-4" />
             <span>เปลี่ยนโรงงาน</span>
           </button>
-          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">
-            {currentPlant.code}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {onOpenExport && (
+              <button
+                type="button"
+                onClick={onOpenExport}
+                title="ส่งออกรายงานโรงนี้"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg border border-blue-200 transition-colors cursor-pointer"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5" />
+                <span>ส่งออก</span>
+              </button>
+            )}
+            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">
+              {currentPlant.code}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-baseline justify-between mb-1">

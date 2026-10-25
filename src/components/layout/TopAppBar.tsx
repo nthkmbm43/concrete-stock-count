@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ChevronLeft, Radio, Users } from "lucide-react";
+import { ChevronLeft, Radio, Users, FileSpreadsheet } from "lucide-react";
 import { UserProfile } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 
@@ -11,6 +11,7 @@ interface TopAppBarProps {
   onBack?: () => void;
   currentUser: UserProfile;
   onOpenUserSwitcher: () => void;
+  onOpenExport?: () => void;
   rightAction?: React.ReactNode;
 }
 
@@ -20,6 +21,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   onBack,
   currentUser,
   onOpenUserSwitcher,
+  onOpenExport,
   rightAction,
 }) => {
   return (
@@ -82,6 +84,19 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
                 </span>
                 <Radio className="h-3 w-3" />
               </div>
+
+              {/* Export Report Quick Trigger */}
+              {onOpenExport && (
+                <button
+                  type="button"
+                  onClick={onOpenExport}
+                  title="ส่งออกรายงาน Excel / PDF / พิมพ์"
+                  aria-label="ส่งออกรายงาน Excel / PDF / พิมพ์"
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 active:scale-95 transition-all cursor-pointer touch-press"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
+                </button>
+              )}
 
               {/* User Switcher Pill Button */}
               <button

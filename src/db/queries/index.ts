@@ -4,3 +4,4 @@ export * from "./stock";
 export * from "./history";
 export * from "./locations";
 export * from "./users";
+export * from "./reports";

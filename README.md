@@ -254,6 +254,52 @@ flowchart TD
 
 ---
 
+## 6. Reporting & Document Export Module (Excel • PDF • Print)
+
+The system provides a dedicated enterprise reporting engine designed for plant managers, auditors, and inventory supervisors. All documents are generated on demand from live Neon PostgreSQL data without impacting live mobile stock counts.
+
+```mermaid
+flowchart LR
+    subgraph Client["Export Modal (UI)"]
+        Filter["Filter & Scope: Round / Plant / Diff Only"]
+        BtnXls["ดาวน์โหลด Excel (.xlsx)"]
+        BtnPdf["ดาวน์โหลด PDF (.pdf)"]
+        BtnPrn["พิมพ์เอกสาร A4 (Print)"]
+    end
+
+    subgraph Server["Next.js Route Handlers & DAL"]
+        Q["src/db/queries/reports.ts\n(getReportData - No N+1)"]
+        XlsGen["src/lib/export/excel-generator.ts\n(ExcelJS Multi-Sheet Workbook)"]
+        PdfGen["src/lib/export/pdf-generator.ts\n(jsPDF + AutoTable A4 Landscape)"]
+        PrnView["src/app/reports/print/page.tsx\n(@media print A4 Landscape View)"]
+    end
+
+    subgraph Output["Export Deliverables"]
+        XLS[".xlsx Corporate Workbook\n(Summary + Plants 1-4 + Diff Sheet)"]
+        PDF[".pdf Multi-Page Vector Document"]
+        HARD["Paper / PDF Printout\n(High-Contrast B&W Friendly)"]
+    end
+
+    Filter --> BtnXls & BtnPdf & BtnPrn
+    BtnXls -->|GET /api/export/excel| Q --> XlsGen --> XLS
+    BtnPdf -->|GET /api/export/pdf| Q --> PdfGen --> PDF
+    BtnPrn -->|/reports/print| Q --> PrnView --> HARD
+```
+
+### Supported Export Capabilities
+
+| Feature | Excel Export (`.xlsx`) | PDF Export (`.pdf`) | Print View (`/reports/print`) |
+|---|---|---|---|
+| **Engine** | `exceljs` Server-side | `jspdf` + `jspdf-autotable` | Server Component + Browser Native Engine |
+| **Page Layout** | A4 Landscape, 1 page wide | A4 Landscape (297mm × 210mm) | `@page { size: A4 landscape; margin: 8mm; }` |
+| **Sheets / Pagination** | Multi-sheet (Summary + Plants 1-4 + Diff) | Multi-page (`หน้า X จาก Y`) | Repeated `thead` on page breaks |
+| **Multi-Location Rows** | Repeated SKU on each yard slot (Excel filter friendly) | Detailed Lock/Row/Status breakdown | Detailed Lock/Row/Status breakdown |
+| **Discrepancy Colors** | Green fill (`#DCFCE7`), Red fill (`#FEE2E2`) | Green (`#166534`), Red (`#991B1B`) | Explicit sign (`+5`, `-2`, `0`) for B&W print |
+| **Interactive Features** | Freeze panes (row 7), Auto-filter (`A7:P7`) | Compact audit table with notes | Interactive toolbar with Print & Download buttons |
+| **Signature Block** | 3-party signatures (Checker, Supervisor, Approver) | Formally drawn signature block on last page | Formal 3-column signature block at document end |
+
+---
+
 ## 9. Deployment on Vercel
 
 1. Push your repository to **GitHub**.

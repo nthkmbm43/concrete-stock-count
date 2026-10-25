@@ -5,7 +5,7 @@ import { StockCount, StockAdjustment, InventoryItem, Plant, StockCountLocation }
 import { Input } from "@/components/ui/input";
 import { DifferenceBadge } from "@/components/count/DifferenceBadge";
 import { formatNumber, formatDateTime } from "@/lib/utils";
-import { Search, History, Clock, User, ShieldAlert, CheckCircle2, MapPin, StickyNote } from "lucide-react";
+import { Search, History, Clock, User, ShieldAlert, CheckCircle2, MapPin, StickyNote, FileSpreadsheet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -28,6 +28,7 @@ interface HistoryViewProps {
   adjustments: StockAdjustment[];
   items: InventoryItem[];
   plants: Plant[];
+  onOpenExport?: () => void;
 }
 
 export const HistoryView: React.FC<HistoryViewProps> = ({
@@ -35,6 +36,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   adjustments,
   items,
   plants,
+  onOpenExport,
 }) => {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
@@ -135,9 +137,21 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               เก็บบันทึกทุกรายการ ไม่มีการลบหรือเขียนทับประวัติเดิม
             </p>
           </div>
-          <span className="text-sm font-bold text-slate-500">
-            {filteredHistory.length} รายการ
-          </span>
+          <div className="text-right flex flex-col items-end gap-1">
+            <span className="text-sm font-bold text-slate-500">
+              {filteredHistory.length} รายการ
+            </span>
+            {onOpenExport && (
+              <button
+                type="button"
+                onClick={onOpenExport}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5" />
+                ส่งออกรายงาน
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

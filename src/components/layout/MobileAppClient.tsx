@@ -23,6 +23,7 @@ import { ProfileView } from "@/components/views/ProfileView";
 import { StockAdjustModal } from "@/components/admin/StockAdjustModal";
 import { ProductManagementModal } from "@/components/admin/ProductManagementModal";
 import { RoundManagementModal } from "@/components/admin/RoundManagementModal";
+import { ExportReportModal } from "@/components/export/ExportReportModal";
 import { Button } from "@/components/ui/button";
 import { ConcreteRealtimeProvider } from "@/lib/realtime/RealtimeProvider";
 import { broadcastRealtimeEvent, subscribeRealtimeEvents } from "@/lib/realtime/client";
@@ -75,6 +76,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [roundModalOpen, setRoundModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   // Background refresh helper
   const refreshData = useCallback(async () => {
@@ -415,6 +417,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
         onSelectUser={handleSelectUser}
         uncountedCount={progress ? progress.uncounted_skus : 0}
         hideNav={Boolean(selectedItem)}
+        onOpenExport={() => setExportModalOpen(true)}
       >
         {/* Error banner with retry */}
         {errorMsg && (
@@ -494,6 +497,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
                 selectedPlantId={selectedPlantId}
                 onSelectPlant={setSelectedPlantId}
                 onCountItem={(item) => setSelectedItem(item)}
+                onOpenExport={() => setExportModalOpen(true)}
               />
             )}
           </>
@@ -511,6 +515,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
               setSelectedPlantId(item.plant_id);
               setCurrentTab("count");
             }}
+            onOpenExport={() => setExportModalOpen(true)}
           />
         )}
 
@@ -521,6 +526,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
             adjustments={adjustments}
             items={items}
             plants={plants}
+            onOpenExport={() => setExportModalOpen(true)}
           />
         )}
 
@@ -568,6 +574,15 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
           open={roundModalOpen}
           onOpenChange={setRoundModalOpen}
           onCreateRound={handleCreateRound}
+        />
+
+        <ExportReportModal
+          isOpen={exportModalOpen}
+          onClose={() => setExportModalOpen(false)}
+          rounds={rounds}
+          activeRoundId={effectiveRound?.id}
+          plants={plants}
+          currentPlantId={selectedPlantId || undefined}
         />
       </MobileShell>
     </ConcreteRealtimeProvider>
