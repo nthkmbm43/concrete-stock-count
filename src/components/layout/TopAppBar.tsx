@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
-import { ChevronLeft, Radio, Users, FileSpreadsheet } from "lucide-react";
+import { ChevronLeft, Radio, Users, FileSpreadsheet, Upload } from "lucide-react";
 import { UserProfile } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
+import { CompanyLogo } from "@/components/brand/CompanyLogo";
+import Link from "next/link";
 
 interface TopAppBarProps {
   title: string;
@@ -12,6 +14,7 @@ interface TopAppBarProps {
   currentUser: UserProfile;
   onOpenUserSwitcher: () => void;
   onOpenExport?: () => void;
+  onOpenImport?: () => void;
   rightAction?: React.ReactNode;
 }
 
@@ -22,6 +25,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   currentUser,
   onOpenUserSwitcher,
   onOpenExport,
+  onOpenImport,
   rightAction,
 }) => {
   return (
@@ -38,19 +42,9 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
               <ChevronLeft className="h-6 w-6 stroke-[2.5]" />
             </button>
           ) : (
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white font-black text-sm shadow-sm">
-                CC
-              </div>
-              <div>
-                <span className="font-extrabold text-sm text-slate-900 tracking-tight leading-none block">
-                  CONCRETE STOCK
-                </span>
-                <span className="text-[10px] text-blue-600 font-bold block mt-0.5">
-                  ระบบนับสต๊อกโรงงาน
-                </span>
-              </div>
-            </div>
+            <Link href="/" className="flex items-center hover:opacity-90 transition">
+              <CompanyLogo size="sm" showText={true} />
+            </Link>
           )}
 
           {onBack && (
@@ -84,6 +78,17 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
                 </span>
                 <Radio className="h-3 w-3" />
               </div>
+
+              {/* Data Import Quick Trigger for Admin */}
+              {currentUser.role === "ADMIN" && (
+                <Link
+                  href="/admin/import"
+                  title="ศูนย์นำเข้าข้อมูล (Data Import Center)"
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 active:scale-95 transition-all cursor-pointer touch-press"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                </Link>
+              )}
 
               {/* Export Report Quick Trigger */}
               {onOpenExport && (

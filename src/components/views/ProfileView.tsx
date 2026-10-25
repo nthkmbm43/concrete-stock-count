@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   UserProfile,
   CountRound,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CompanyLogo } from "@/components/brand/CompanyLogo";
 import {
   User,
   ShieldCheck,
@@ -24,6 +26,8 @@ import {
   RefreshCw,
   HelpCircle,
   FileCode,
+  Building2,
+  FileSpreadsheet,
 } from "lucide-react";
 
 interface ProfileViewProps {
@@ -196,6 +200,22 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <CalendarPlus className="h-4 w-4" />
               <span>เปิดรอบนับใหม่</span>
             </Button>
+
+            <Link
+              href="/admin/import"
+              className="h-13 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs touch-press transition text-center"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              <span>นำเข้า Excel / CSV</span>
+            </Link>
+
+            <Link
+              href="/admin/import"
+              className="h-13 rounded-2xl bg-indigo-900 hover:bg-indigo-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs touch-press transition text-center"
+            >
+              <Building2 className="h-4 w-4 text-indigo-300" />
+              <span>ข้อมูลองค์กร KCON</span>
+            </Link>
           </div>
 
           {/* Manage Products Collapsible List */}
@@ -303,7 +323,36 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       </div>
 
-      {/* 4. Help & Guidelines */}
+      {/* 4. KCON Company Profile Card */}
+      <div className="rounded-3xl bg-white p-4.5 border border-slate-200/90 shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <CompanyLogo size="sm" showText={true} />
+          <Link
+            href="/admin/import"
+            className="text-[11px] font-bold text-blue-600 hover:text-blue-800"
+          >
+            ตั้งค่าองค์กร
+          </Link>
+        </div>
+
+        <div className="space-y-1.5 text-xs text-slate-600 border-t border-slate-100 pt-2.5">
+          <p className="font-bold text-slate-800">
+            บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด (KCON)
+          </p>
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            154 หมู่ 9 ถนนมะลิวัลย์ ต.บ้านทุ่ม อ.เมืองขอนแก่น จ.ขอนแก่น 40000
+          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 pt-1">
+            <span>โทร. 043-255-111</span>
+            <span>•</span>
+            <span>kcon.eng@gmail.com</span>
+            <span>•</span>
+            <span className="text-blue-600">www.kcon-concrete.com</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Help & Guidelines */}
       <div className="rounded-3xl bg-slate-100/80 p-4 border border-slate-200/80 text-xs text-slate-600 space-y-2">
         <div className="flex items-center gap-2 font-bold text-slate-800">
           <HelpCircle className="h-4 w-4 text-blue-600" />

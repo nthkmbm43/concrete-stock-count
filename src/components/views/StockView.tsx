@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Link from "next/link";
 import { InventoryItem, Plant, UserProfile } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import {
   User,
   Filter,
   FileSpreadsheet,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -98,16 +100,25 @@ export const StockView: React.FC<StockViewProps> = ({
                 จาก {items.length} รายการ
               </span>
             </div>
-            {onOpenExport && (
-              <button
-                type="button"
-                onClick={onOpenExport}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer mt-1"
+            <div className="flex items-center gap-1.5 mt-1">
+              <Link
+                href="/admin/import"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
               >
-                <FileSpreadsheet className="h-3.5 w-3.5" />
-                ส่งออกสต๊อก
-              </button>
-            )}
+                <Upload className="h-3.5 w-3.5" />
+                นำเข้า
+              </Link>
+              {onOpenExport && (
+                <button
+                  type="button"
+                  onClick={onOpenExport}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                >
+                  <FileSpreadsheet className="h-3.5 w-3.5" />
+                  ส่งออก
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -43,7 +43,10 @@ export async function generateStockCountPdf(data: ReportDataResult): Promise<Buf
   // 1. Header Information
   doc.setFontSize(14);
   doc.setTextColor(30, 58, 138); // #1E3A8A
-  doc.text("บริษัท ผลิตภัณฑ์คอนกรีต จำกัด (มหาชน)", 14, 12);
+  const companyTitle = summary.companyNameTh
+    ? `${summary.companyNameTh} (${summary.brandName || "KCON"})`
+    : "บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด (KCON)";
+  doc.text(companyTitle, 14, 12);
 
   doc.setFontSize(11);
   doc.setTextColor(15, 23, 42); // #0F172A

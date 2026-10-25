@@ -77,14 +77,33 @@ async function PrintDocumentContent({ searchParams }: PageProps) {
           {/* Document Header */}
           <header className="border-b-2 border-slate-800 pb-3 mb-4">
             <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-xl font-bold text-blue-900 print:text-black tracking-tight">
-                  บริษัท ผลิตภัณฑ์คอนกรีต จำกัด (มหาชน)
-                </h1>
-                <p className="text-sm font-semibold text-slate-700 print:text-black mt-0.5">
+              <div className="space-y-1">
+                <div className="flex items-center gap-3">
+                  {summary.logoUrl ? (
+                    <img
+                      src={summary.logoUrl}
+                      alt={summary.brandName || "KCON"}
+                      className="h-12 w-auto object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-900 text-white font-black text-base print:border print:border-black">
+                      K
+                    </div>
+                  )}
+                  <div>
+                    <h1 className="text-xl font-bold text-blue-900 print:text-black tracking-tight">
+                      {summary.companyNameTh || "บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด"} ({summary.brandName || "KCON"})
+                    </h1>
+                    <p className="text-[11px] text-slate-500 print:text-slate-700">
+                      {summary.addressTh || "154 หมู่ 9 ถนนมะลิวัลย์ ต.บ้านทุ่ม อ.เมืองขอนแก่น จ.ขอนแก่น 40000"} | โทร. {summary.phone || "043-255-111"}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-sm font-semibold text-slate-800 print:text-black pt-1">
                   {summary.title}
                 </p>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 print:text-slate-700 mt-1">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 print:text-slate-700 mt-0.5">
                   {summary.roundPeriod && (
                     <span>
                       ช่วงเวลานับ:{" "}

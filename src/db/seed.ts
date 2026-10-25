@@ -14,6 +14,40 @@ export async function runSeed() {
 
   console.log("Starting Concrete Stock Count Database Seed...");
 
+  // 0. Seed Company Profile (KCON Public Verifiable Data)
+  console.log("Seeding KCON Company Settings...");
+  await db
+    .insert(schema.companySettings)
+    .values({
+      id: "default",
+      companyNameTh: "บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด",
+      companyNameEn: "KHON KAEN CONCRETE PRODUCT CO., LTD.",
+      brandName: "KCON",
+      addressTh:
+        "154 หมู่ 9 ถนนมะลิวัลย์ ตำบลบ้านทุ่ม อำเภอเมืองขอนแก่น จังหวัดขอนแก่น 40000",
+      phone: "043-255-111",
+      email: "kcon.eng@gmail.com",
+      website: "www.kcon-concrete.com",
+      logoUrl: null,
+      reportFooter:
+        "เอกสารรายงานผลการตรวจนับคลังสินค้าคอนกรีต • ระบบ Concrete Mobile Stock Counting",
+      dataSourceNotice:
+        "ข้อมูลเริ่มต้นจากแหล่งข้อมูลสาธารณะของบริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด (www.kcon-concrete.com)",
+    })
+    .onConflictDoUpdate({
+      target: schema.companySettings.id,
+      set: {
+        companyNameTh: "บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด",
+        companyNameEn: "KHON KAEN CONCRETE PRODUCT CO., LTD.",
+        brandName: "KCON",
+        addressTh:
+          "154 หมู่ 9 ถนนมะลิวัลย์ ตำบลบ้านทุ่ม อำเภอเมืองขอนแก่น จังหวัดขอนแก่น 40000",
+        phone: "043-255-111",
+        email: "kcon.eng@gmail.com",
+        website: "www.kcon-concrete.com",
+      },
+    });
+
   // 1. Seed Plants
   console.log("Seeding Plants...");
   const plantsData = [
@@ -54,11 +88,24 @@ export async function runSeed() {
       .onConflictDoUpdate({ target: schema.plants.id, set: p });
   }
 
-  // 2. Seed Categories
+  // 2. Seed Categories (KCON Public Product Families)
   console.log("Seeding Categories...");
   const categoriesData = [
-    { id: "finished_goods", code: "FG", name: "สินค้าสำเร็จรูป", active: true },
-    { id: "raw_material", code: "RM", name: "วัตถุดิบ", active: true },
+    { id: "finished_goods", code: "FG", name: "สินค้าสำเร็จรูปทั่วไป", active: true },
+    { id: "piles", code: "PIL", name: "เสาเข็มคอนกรีตอัดแรง", active: true },
+    { id: "solid_slabs", code: "SLB", name: "แผ่นพื้นตัน / ท้องเรียบ", active: true },
+    { id: "hollowcore", code: "HC", name: "แผ่นพื้นกลวง Hollow Core", active: true },
+    { id: "post_tension", code: "PT", name: "คอนกรีต Post-Tension", active: true },
+    { id: "bridge_girders", code: "BG", name: "คานสะพาน", active: true },
+    { id: "precast_beams", code: "BM", name: "คานสำเร็จรูป", active: true },
+    { id: "retaining_wall", code: "RW", name: "กำแพงกันดิน / L-Wall", active: true },
+    { id: "fence_posts", code: "FP", name: "เสารั้วคอนกรีต", active: true },
+    { id: "curbstones", code: "CB", name: "ขอบคันหิน", active: true },
+    { id: "concrete_blocks", code: "BLK", name: "คอนกรีตบล็อก / อิฐบล็อก", active: true },
+    { id: "pipes", code: "PIP", name: "ท่อระบายน้ำคอนกรีต", active: true },
+    { id: "precast_walls", code: "PW", name: "ผนังสำเร็จรูป Precast", active: true },
+    { id: "made_to_order", code: "MTO", name: "คอนกรีตสั่งทำพิเศษ (Made to Order)", active: true },
+    { id: "raw_material", code: "RM", name: "วัตถุดิบและวัสดุการผลิต", active: true },
     { id: "consumables", code: "CON", name: "วัสดุสิ้นเปลือง", active: true },
     { id: "others", code: "OTH", name: "อื่น ๆ", active: true },
   ];
@@ -75,6 +122,7 @@ export async function runSeed() {
   const unitsData = [
     { id: "ต้น", code: "TON", name: "ต้น", symbol: "ต้น", active: true },
     { id: "แผ่น", code: "PAN", name: "แผ่น", symbol: "แผ่น", active: true },
+    { id: "ท่อน", code: "THN", name: "ท่อน", symbol: "ท่อน", active: true },
     { id: "ชิ้น", code: "PCS", name: "ชิ้น", symbol: "ชิ้น", active: true },
     { id: "อัน", code: "UN", name: "อัน", symbol: "อัน", active: true },
     { id: "ก้อน", code: "BLK", name: "ก้อน", symbol: "ก้อน", active: true },
@@ -288,9 +336,110 @@ export async function runSeed() {
       name: "เหล็กเส้นกลม SR24 RB9",
       categoryId: "raw_material",
       plantId: 1,
-      variant: "ยาว 10 เมตร",
+      variant: "ยาว 10 เมตร [DEMO]",
       stockUnitId: "เส้น",
       currentQuantity: 400,
+      isActive: true,
+    },
+    // KCON Public Verifiable Raw Material Families
+    {
+      id: "prod-cem-type3",
+      sku: "CEM-TYPE3",
+      name: "ปูนซีเมนต์ปอร์ตแลนด์ Type 3 (High Early Strength)",
+      categoryId: "raw_material",
+      plantId: 1,
+      variant: "ปูนซีเมนต์ปอร์ตแลนด์ประเภท 3 แข็งตัวเร็ว [DEMO]",
+      stockUnitId: "ตัน",
+      currentQuantity: 45,
+      isActive: true,
+    },
+    {
+      id: "prod-agg-crush",
+      sku: "AGG-CRUSH",
+      name: "หิน 1 นิ้ว - 3/8 นิ้ว (หินย่อยผสมคอนกรีต)",
+      categoryId: "raw_material",
+      plantId: 1,
+      variant: "หินผสมคอนกรีตอัดแรง [DEMO]",
+      stockUnitId: "คิว",
+      currentQuantity: 320,
+      isActive: true,
+    },
+    {
+      id: "prod-snd-coarse",
+      sku: "SND-COARSE",
+      name: "ทรายหยาบ (ทรายผสมคอนกรีต)",
+      categoryId: "raw_material",
+      plantId: 1,
+      variant: "ทรายหยาบคัดเกรด [DEMO]",
+      stockUnitId: "คิว",
+      currentQuantity: 280,
+      isActive: true,
+    },
+    {
+      id: "prod-pc-wire",
+      sku: "PC-WIRE",
+      name: "ลวดเหล็กแรงดึงสูง PC Wire (4 มม.)",
+      categoryId: "raw_material",
+      plantId: 1,
+      variant: "ลวดอัดแรงสำหรับเสารั้วและแผ่นพื้น [DEMO]",
+      stockUnitId: "ตัน",
+      currentQuantity: 18,
+      isActive: true,
+    },
+    {
+      id: "prod-pc-strand",
+      sku: "PC-STRAND",
+      name: "ลวดตีเกลียวแรงดึงสูง PC Strand (3/8 นิ้ว 7 เส้น)",
+      categoryId: "raw_material",
+      plantId: 1,
+      variant: "ลวดตีเกลียวแรงดึงสูงสำหรับเสาเข็มและคาน [DEMO]",
+      stockUnitId: "ตัน",
+      currentQuantity: 24,
+      isActive: true,
+    },
+    {
+      id: "prod-adm-chem",
+      sku: "ADM-CHEM",
+      name: "น้ำยาผสมคอนกรีต (Type F Superplasticizer)",
+      categoryId: "raw_material",
+      plantId: 1,
+      variant: "น้ำยาลดน้ำกำลังอัดสูงพิเศษ [DEMO]",
+      stockUnitId: "ลิตร",
+      currentQuantity: 1500,
+      isActive: true,
+    },
+    // KCON Public Verifiable Product Lines
+    {
+      id: "prod-pil-i26",
+      sku: "PIL-I26",
+      name: "เสาเข็มคอนกรีตอัดแรง ไอ-26 (ยาว 12.00 ม.)",
+      categoryId: "piles",
+      plantId: 2,
+      variant: "เสาเข็มคอนกรีตอัดแรง มอก. 396-2549 [DEMO]",
+      stockUnitId: "ต้น",
+      currentQuantity: 65,
+      isActive: true,
+    },
+    {
+      id: "prod-cb-std",
+      sku: "CB-STD",
+      name: "ขอบคันหินคอนกรีตมาตรฐาน 15x30x100 ซม.",
+      categoryId: "curbstones",
+      plantId: 4,
+      variant: "ขอบคันหินรางน้ำคอนกรีต [DEMO]",
+      stockUnitId: "ท่อน",
+      currentQuantity: 140,
+      isActive: true,
+    },
+    {
+      id: "prod-pipe-100",
+      sku: "PIPE-100",
+      name: "ท่อระบายน้ำคอนกรีตเสริมเหล็ก คสล. ชั้น 3 ศก. 1.00 ม.",
+      categoryId: "pipes",
+      plantId: 4,
+      variant: "ท่อระบายน้ำ คสล. มอก. 128-2560 [DEMO]",
+      stockUnitId: "ท่อน",
+      currentQuantity: 92,
       isActive: true,
     },
   ];

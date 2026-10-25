@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { MobileAppClient } from "@/components/layout/MobileAppClient";
 import {
   getProductList,
@@ -17,7 +18,10 @@ import { DataProvider } from "@/lib/data-provider";
  * 16. Zero full-page skeleton on initial load!
  * 30. Parallel execution of independent queries!
  */
+export const instant = false;
+
 export default async function Page() {
+  await connection();
   const [
     plants,
     activeRound,

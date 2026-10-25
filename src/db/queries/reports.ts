@@ -3,6 +3,7 @@ import { db, schema, isDatabaseConfigured } from "@/db";
 import { eq, desc, asc, and, inArray } from "drizzle-orm";
 import { DataProvider } from "@/lib/data-provider";
 import { Plant, CountRound, InventoryItem, StockCount } from "@/lib/types";
+import { getCompanySettings } from "./company";
 
 export interface ReportQueryOptions {
   scope?: "current_stock" | "count_round";
@@ -67,6 +68,15 @@ export interface ReportSummary {
   plantSummaries: PlantReportSummary[];
   generatedAt: string;
   generatedBy?: string;
+  companyNameTh?: string;
+  companyNameEn?: string;
+  brandName?: string;
+  addressTh?: string;
+  phone?: string | null;
+  email?: string;
+  website?: string;
+  logoUrl?: string | null;
+  reportFooter?: string | null;
 }
 
 export interface ReportDataResult {
@@ -415,6 +425,8 @@ export const getReportData = cache(
         }
       }
 
+      const company = await getCompanySettings();
+
       const summary: ReportSummary = {
         title:
           scope === "count_round"
@@ -441,6 +453,15 @@ export const getReportData = cache(
         itemsWithDiffCount,
         plantSummaries: Array.from(plantSummaryMap.values()),
         generatedAt: new Date().toLocaleString("th-TH"),
+        companyNameTh: company.companyNameTh,
+        companyNameEn: company.companyNameEn,
+        brandName: company.brandName,
+        addressTh: company.addressTh,
+        phone: company.phone,
+        email: company.email,
+        website: company.website,
+        logoUrl: company.logoUrl,
+        reportFooter: company.reportFooter,
       };
 
       const differenceRows = filteredRows.filter((r) => r.difference !== 0);
@@ -717,6 +738,8 @@ async function getFallbackReportData(options: ReportQueryOptions): Promise<Repor
     }
   }
 
+  const company = await getCompanySettings();
+
   const summary: ReportSummary = {
     title:
       scope === "count_round"
@@ -743,6 +766,15 @@ async function getFallbackReportData(options: ReportQueryOptions): Promise<Repor
     itemsWithDiffCount,
     plantSummaries: Array.from(plantSummaryMap.values()),
     generatedAt: new Date().toLocaleString("th-TH"),
+    companyNameTh: company.companyNameTh,
+    companyNameEn: company.companyNameEn,
+    brandName: company.brandName,
+    addressTh: company.addressTh,
+    phone: company.phone,
+    email: company.email,
+    website: company.website,
+    logoUrl: company.logoUrl,
+    reportFooter: company.reportFooter,
   };
 
   const differenceRows = filteredRows.filter((r) => r.difference !== 0);

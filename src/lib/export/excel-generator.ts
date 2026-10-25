@@ -60,7 +60,15 @@ export async function generateStockCountExcel(data: ReportDataResult): Promise<B
       },
     });
 
-    populateDetailSheet(plantSheet, pRows, `${summary.title} - ${plantSum.plantName}`, summary.generatedAt);
+    populateDetailSheet(
+      plantSheet,
+      pRows,
+      `${summary.title} - ${plantSum.plantName}`,
+      summary.generatedAt,
+      summary.companyNameTh
+        ? `${summary.companyNameTh} (${summary.brandName || "KCON"})`
+        : "บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด (KCON)"
+    );
   }
 
   // ─────────────────────────────────────────────────────────
@@ -82,7 +90,10 @@ export async function generateStockCountExcel(data: ReportDataResult): Promise<B
       diffSheet,
       differenceRows,
       `${summary.title} (เฉพาะรายการที่มียอดผลต่าง ${differenceRows.length} จุด)`,
-      summary.generatedAt
+      summary.generatedAt,
+      summary.companyNameTh
+        ? `${summary.companyNameTh} (${summary.brandName || "KCON"})`
+        : "บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด (KCON)"
     );
   }
 
@@ -107,7 +118,9 @@ function setupSummarySheet(ws: ExcelJS.Worksheet, summary: any) {
   // 1. Company Banner
   ws.mergeCells("B2:H2");
   const titleCell = ws.getCell("B2");
-  titleCell.value = "บริษัท ผลิตภัณฑ์คอนกรีต จำกัด (มหาชน)";
+  titleCell.value = summary.companyNameTh
+    ? `${summary.companyNameTh} (${summary.brandName || "KCON"})`
+    : "บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด (KCON)";
   titleCell.font = { name: "Arial", size: 16, bold: true, color: { argb: "FF1E3A8A" } };
   titleCell.alignment = { vertical: "middle", horizontal: "center" };
   ws.getRow(2).height = 26;
@@ -405,7 +418,8 @@ function populateDetailSheet(
   ws: ExcelJS.Worksheet,
   rows: ReportItemRow[],
   sheetTitle: string,
-  generatedAt: string
+  generatedAt: string,
+  companyTitle = "บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด (KCON)"
 ) {
   // Columns definition
   ws.columns = [
@@ -430,7 +444,7 @@ function populateDetailSheet(
   // 1. Title Banner
   ws.mergeCells("A2:P2");
   const compCell = ws.getCell("A2");
-  compCell.value = "บริษัท ผลิตภัณฑ์คอนกรีต จำกัด (มหาชน)";
+  compCell.value = companyTitle;
   compCell.font = { name: "Arial", size: 14, bold: true, color: { argb: "FF1E3A8A" } };
   compCell.alignment = { vertical: "middle", horizontal: "left" };
   ws.getRow(2).height = 22;

@@ -339,7 +339,67 @@ export const stockAdjustments = pgTable(
 );
 
 // ────────────────────────────────────────────────────────
-// 9. DRIZZLE RELATIONS
+// 9. COMPANY SETTINGS & BRANDING (KCON)
+// ────────────────────────────────────────────────────────
+
+export const companySettings = pgTable("company_settings", {
+  id: text("id").primaryKey().default("default"),
+  companyNameTh: text("company_name_th")
+    .notNull()
+    .default("บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด"),
+  companyNameEn: text("company_name_en")
+    .notNull()
+    .default("KHON KAEN CONCRETE PRODUCT CO., LTD."),
+  brandName: text("brand_name").notNull().default("KCON"),
+  addressTh: text("address_th")
+    .notNull()
+    .default(
+      "154 หมู่ 9 ถนนมะลิวัลย์ ตำบลบ้านทุ่ม อำเภอเมืองขอนแก่น จังหวัดขอนแก่น 40000"
+    ),
+  phone: text("phone").default("043-255-111"),
+  email: text("email").notNull().default("kcon.eng@gmail.com"),
+  website: text("website").notNull().default("www.kcon-concrete.com"),
+  logoUrl: text("logo_url"), // URL or base64 or SVG
+  reportFooter: text("report_footer").default(
+    "เอกสารรายงานผลการตรวจนับคลังสินค้าคอนกรีต • ระบบ Concrete Mobile Stock Counting"
+  ),
+  dataSourceNotice: text("data_source_notice").default(
+    "ข้อมูลเริ่มต้นจากแหล่งข้อมูลสาธารณะของบริษัท"
+  ),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ────────────────────────────────────────────────────────
+// 10. IMPORT BATCHES & AUDIT HISTORY
+// ────────────────────────────────────────────────────────
+
+export const importBatches = pgTable(
+  "import_batches",
+  {
+    id: text("id").primaryKey(), // "IMP-YYYYMMDD-XXX"
+    fileName: text("file_name").notNull(),
+    fileSize: integer("file_size").notNull().default(0),
+    importType: text("import_type").notNull().default("product_master"), // product_master | current_stock | storage_locations | product_locations
+    sheetName: text("sheet_name"),
+    userId: text("user_id").references(() => user.id),
+    userName: text("user_name").notNull(),
+    totalRows: integer("total_rows").notNull().default(0),
+    successCount: integer("success_count").notNull().default(0),
+    skippedCount: integer("skipped_count").notNull().default(0),
+    errorCount: integer("error_count").notNull().default(0),
+    policy: text("policy").notNull().default("skip"), // skip | update | create_only
+    status: text("status").notNull().default("SUCCESS"), // SUCCESS | PARTIAL | FAILED
+    errorLog: text("error_log"), // JSON stringified row errors
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("import_batch_user_idx").on(table.userId),
+    index("import_batch_created_idx").on(table.createdAt),
+  ]
+);
+
+// ────────────────────────────────────────────────────────
+// 11. DRIZZLE RELATIONS
 // ────────────────────────────────────────────────────────
 
 export const userRelations = relations(user, ({ one, many }) => ({
@@ -351,6 +411,7 @@ export const userRelations = relations(user, ({ one, many }) => ({
   accounts: many(account),
   stockCounts: many(stockCounts),
   adjustments: many(stockAdjustments),
+  importBatches: many(importBatches),
 }));
 
 export const profilesRelations = relations(profiles, ({ one }) => ({
@@ -457,6 +518,13 @@ export const stockAdjustmentsRelations = relations(stockAdjustments, ({ one }) =
   }),
   adminUser: one(user, {
     fields: [stockAdjustments.adminUserId],
+    references: [user.id],
+  }),
+}));
+
+export const importBatchesRelations = relations(importBatches, ({ one }) => ({
+  user: one(user, {
+    fields: [importBatches.userId],
     references: [user.id],
   }),
 }));
