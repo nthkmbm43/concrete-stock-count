@@ -300,6 +300,32 @@ flowchart LR
 
 ---
 
+## 8. Data Import Center & Unified KCON Branding
+
+### Data Import Wizard (`/admin/import`)
+A comprehensive 7-step data onboarding workflow engineered for warehouse data bulk upload:
+1. **Import Type**: Products Master & Opening Stock.
+2. **File Upload**: Drag & Drop `.xlsx`, `.xls`, or `.csv` (up to 10MB) with standard downloadable Excel template (`/api/import/template`).
+3. **Sheet Selection**: Multi-sheet workbook navigation.
+4. **Data Preview**: First 50 rows interactive tabular preview.
+5. **Column Mapping with Auto-Detection**: Matches Excel headers against Thai and English canonical aliases (SKU, Name, Plant 1-4, Unit, Quantity, Variant, Lock, Row, Zone, Dimensions, Status).
+6. **Validation & Duplicate Policy**:
+   - **Multi-Location Aggregation**: Automatically aggregates repeated SKU rows across different storage locks/rows into one product entity with multiple locations and summed stock.
+   - **Duplicate SKU Policy**: Choose between **Skip** (default), **Update** (with stock adjustment audit log), or **Create Only**.
+   - **Error Handling**: Row-level validation and downloadable Excel Error Report with formula injection protection.
+7. **Execution & Batch Audit Log**: Atomic database transaction writing to `import_batches` (`IMP-YYYYMMDD-XXX`) with full audit history.
+
+### KCON Company Profile & Unified Branding
+- **Single Source of Truth**: `company_settings` table storing verified public company information for **Khon Kaen Concrete Product Co., Ltd. (KCON)**.
+- **Unified Brand Assets**: Dynamic `CompanyLogo` component rendering either custom uploaded logos or modern geometric concrete brand typography.
+- **Consistent Reports & Exports**: Company branding, address, and contact details are automatically embedded into:
+  - App Top Navigation Bar & Mobile Shell
+  - Excel Export (`.xlsx`) Cover & Detail Headers
+  - PDF Export (`.pdf`) Document Headers
+  - A4 Landscape Print View (`/reports/print`)
+
+---
+
 ## 9. Deployment on Vercel
 
 1. Push your repository to **GitHub**.
