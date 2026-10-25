@@ -97,6 +97,7 @@ export interface StockCountLocation {
   previous_quantity: number;
   counted_quantity: number;
   difference: number;
+  note?: string;
   source_type?: "SYSTEM" | "NEW";
   observation_status?: "FOUND" | "MOVED" | "NOT_FOUND" | "NEW_LOCATION";
   client_id?: string;

@@ -14,7 +14,7 @@ import { LocationActionSheet } from "@/components/count/LocationActionSheet";
 import { EditLocationSheet } from "@/components/count/EditLocationSheet";
 import { CountSuccessModal } from "@/components/count/CountSuccessModal";
 import { HistoryTimeline, TimelineEntry } from "@/components/count/HistoryTimeline";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import { ConfirmCountSheet } from "@/components/count/ConfirmCountSheet";
 import { Button } from "@/components/ui/button";
 import { DifferenceBadge } from "@/components/count/DifferenceBadge";
 import { formatNumber } from "@/lib/utils";
@@ -47,6 +47,8 @@ export interface LocationState {
   expected_quantity: number;
   counted_quantity: number;
   isNew: boolean;
+  note?: string;
+  observation_status?: "FOUND" | "MOVED" | "NOT_FOUND" | "NEW_LOCATION";
 }
 
 interface ItemCountViewProps {
@@ -123,6 +125,8 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
         difference: loc.counted_quantity - loc.expected_quantity,
         source_type: loc.source_type,
         client_id: loc.client_id,
+        note: loc.note,
+        observation_status: loc.observation_status,
       }));
       await onSaveDraft({
         round_id: round.id,
@@ -154,6 +158,8 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
           expected_quantity: loc.previous_quantity,
           counted_quantity: loc.counted_quantity,
           isNew: loc.source_type === "NEW" || loc.previous_quantity === 0,
+          note: loc.note || undefined,
+          observation_status: loc.observation_status,
         }))
       );
       setNotes(draft.notes || "");
@@ -171,6 +177,7 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
           expected_quantity: loc.expected_quantity,
           counted_quantity: loc.expected_quantity,
           isNew: false,
+          note: undefined,
         }))
       );
       setNotes("");
@@ -186,6 +193,7 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
           expected_quantity: item.current_quantity,
           counted_quantity: item.current_quantity,
           isNew: false,
+          note: undefined,
         },
       ]);
       setNotes("");
@@ -327,6 +335,26 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
     }
   };
 
+  // Save note for a specific location
+  const handleSaveLocationNote = (index: number, newNote: string) => {
+    setLocations((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], note: newNote.trim() || undefined };
+      syncDraftIfActive(next);
+      return next;
+    });
+  };
+
+  // Delete note for a specific location (keeps location intact, clears note only)
+  const handleDeleteLocationNote = (index: number) => {
+    setLocations((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], note: undefined };
+      syncDraftIfActive(next);
+      return next;
+    });
+  };
+
   // Format locations for submission
   const mappedCountLocations: StockCountLocation[] = useMemo(() => {
     return locations.map((loc) => ({
@@ -338,6 +366,8 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
       previous_quantity: loc.expected_quantity,
       counted_quantity: loc.counted_quantity,
       difference: loc.counted_quantity - loc.expected_quantity,
+      note: loc.note,
+      observation_status: loc.observation_status,
     }));
   }, [locations]);
 
@@ -544,6 +574,10 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
               onChange={(val) => handleLocationCountChange(idx, val)}
               onOpenMenu={loc.isNew ? () => handleOpenActionMenu(loc) : undefined}
               isNew={loc.isNew}
+              note={loc.note}
+              onSaveNote={(newNote) => handleSaveLocationNote(idx, newNote)}
+              onDeleteNote={() => handleDeleteLocationNote(idx)}
+              observationStatus={loc.observation_status}
             />
           ))}
         </div>
@@ -589,21 +623,6 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
             </div>
           </div>
         </div>
-      </div>
-
-      {/* 6. Notes Input matching Mockup */}
-      <div className="space-y-1">
-        <label className="text-xs font-bold text-slate-700 flex items-center gap-1 px-1">
-          <FileEdit className="h-3.5 w-3.5 text-slate-400" />
-          <span>หมายเหตุ (ถ้ามี)</span>
-        </label>
-        <input
-          type="text"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="เช่น วางกระจายหลายล็อค ผลิตคนละวัน..."
-          className="w-full h-12 px-4 rounded-2xl border-2 border-slate-200/90 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 shadow-xs"
-        />
       </div>
 
       {/* 7. History Timeline Collapsible */}
@@ -700,85 +719,18 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
       )}
 
       {/* Confirmation Bottom Sheet */}
-      <Sheet open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <SheetContent side="bottom" className="pb-8">
-          <SheetHeader className="text-center items-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 mb-2">
-              <CheckCircle2 className="h-8 w-8 stroke-[2.5]" />
-            </div>
-            <SheetTitle className="text-xl font-black text-slate-900">
-              ยืนยันยอดการนับรวม?
-            </SheetTitle>
-            <SheetDescription className="text-sm text-slate-500">
-              รวมยอดนับจาก {locations.length} จุดวาง ระบบจะบันทึก History ทันที
-            </SheetDescription>
-          </SheetHeader>
-
-          <div className="my-3 rounded-2xl bg-slate-50 border border-slate-200 p-3.5 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs font-black px-2 py-0.5 rounded bg-slate-900 text-white">
-                {item.sku}
-              </span>
-              <span className="text-xs font-extrabold text-blue-600">
-                {item.height ? `สูง ${item.height}` : item.size}
-              </span>
-            </div>
-            <h4 className="font-bold text-slate-900 text-sm">{item.name}</h4>
-
-            {/* Location breakdown items */}
-            <div className="pt-2 border-t border-slate-200 space-y-1.5 text-xs">
-              {locations.map((loc, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-slate-600">
-                      ล็อค {loc.lock_code} แถว {loc.row_code}
-                    </span>
-                    {loc.isNew && (
-                      <span className="text-[9px] font-black uppercase text-amber-700 bg-amber-100 px-1 py-0.2 rounded">
-                        ใหม่
-                      </span>
-                    )}
-                  </div>
-                  <span className="font-mono font-bold text-slate-900">
-                    {formatNumber(loc.counted_quantity)} {item.unit}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between font-black text-sm">
-              <span className="text-slate-700">ยอดรวมทั้งหมด</span>
-              <div className="flex items-center gap-2">
-                <span className="text-blue-600 text-base">
-                  {formatNumber(totalCounted)} {item.unit}
-                </span>
-                <DifferenceBadge diff={totalDifference} size="sm" />
-              </div>
-            </div>
-          </div>
-
-          <SheetFooter className="mt-4 flex-row gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setConfirmOpen(false)}
-              disabled={isSubmitting}
-              className="flex-1 h-13 rounded-2xl font-bold"
-            >
-              กลับไปแก้
-            </Button>
-            <Button
-              type="button"
-              variant="default"
-              onClick={handleConfirmSubmit}
-              disabled={isSubmitting}
-              className="flex-1 h-13 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-base shadow-lg shadow-blue-600/30"
-            >
-              {isSubmitting ? "กำลังส่งยอด..." : "ยืนยันยอด"}
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+      <ConfirmCountSheet
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        item={item}
+        countedQuantity={totalCounted}
+        locationsCount={locations.length}
+        locations={locations}
+        overallNotes={notes}
+        onOverallNotesChange={setNotes}
+        onConfirm={handleConfirmSubmit}
+        isSubmitting={isSubmitting}
+      />
 
       {/* Success Modal */}
       <CountSuccessModal

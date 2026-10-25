@@ -404,7 +404,8 @@ export default function MobileApp() {
                   difference: c.difference,
                   by_name: c.user_name,
                   timestamp: c.submitted_at || c.counted_at || c.created_at,
-                  note: c.notes,
+                  notes: c.notes,
+                  locations: c.locations,
                 }));
               }}
               onSelectNextItem={(next) => setSelectedItem(next)}

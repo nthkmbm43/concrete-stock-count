@@ -15,6 +15,7 @@ export interface CountLocationInput {
   countedQuantity: number;
   difference: number;
   observationStatus?: "FOUND" | "MOVED" | "NOT_FOUND" | "NEW_LOCATION";
+  note?: string;
 }
 
 export interface SubmitCountInput {
@@ -107,6 +108,7 @@ export async function submitStockCountAction(input: SubmitCountInput) {
             countedQuantity: loc.countedQuantity,
             difference: loc.difference,
             observationStatus: loc.observationStatus || "FOUND",
+            note: loc.note || null,
             createdAt: now,
             updatedAt: now,
           });

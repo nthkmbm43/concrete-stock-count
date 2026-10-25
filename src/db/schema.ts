@@ -295,6 +295,7 @@ export const stockCountLocations = pgTable(
     countedQuantity: integer("counted_quantity").notNull().default(0),
     difference: integer("difference").notNull().default(0),
     observationStatus: text("observation_status").notNull().default("FOUND"), // "FOUND" | "MOVED" | "NOT_FOUND" | "NEW_LOCATION"
+    note: text("note"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

@@ -302,6 +302,7 @@ export class DataProvider {
           countedQuantity: l.counted_quantity,
           difference: l.difference,
           observationStatus: l.observation_status || "FOUND",
+          note: l.note,
         })),
         notes: params.notes,
       });

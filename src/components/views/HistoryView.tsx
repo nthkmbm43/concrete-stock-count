@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { StockCount, StockAdjustment, InventoryItem, Plant } from "@/lib/types";
+import { StockCount, StockAdjustment, InventoryItem, Plant, StockCountLocation } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { DifferenceBadge } from "@/components/count/DifferenceBadge";
 import { formatNumber, formatDateTime } from "@/lib/utils";
-import { Search, History, Clock, User, ShieldAlert, CheckCircle2, MapPin } from "lucide-react";
+import { Search, History, Clock, User, ShieldAlert, CheckCircle2, MapPin, StickyNote } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CombinedHistoryItem {
@@ -19,6 +19,7 @@ interface CombinedHistoryItem {
   difference: number;
   notes?: string;
   timestamp: string;
+  locations?: StockCountLocation[];
 }
 
 interface HistoryViewProps {
@@ -61,6 +62,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         difference: c.difference,
         notes: c.notes,
         timestamp: c.counted_at,
+        locations: c.locations,
       });
     });
 
@@ -95,6 +97,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         !q ||
         entry.by_name.toLowerCase().includes(q) ||
         (entry.notes && entry.notes.toLowerCase().includes(q)) ||
+        (entry.locations && entry.locations.some((l) => l.note && l.note.toLowerCase().includes(q))) ||
         (item && (item.sku.toLowerCase().includes(q) || item.name.toLowerCase().includes(q) || item.size.toLowerCase().includes(q)));
 
       if (!matchesSearch) return false;
@@ -276,9 +279,42 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
                 {/* Reason / Notes */}
                 {entry.notes && (
-                  <p className="mt-2 text-xs text-slate-600 italic bg-slate-50 p-2 rounded-xl border border-slate-100">
+                  <p className="mt-2 text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                     "{entry.notes}"
                   </p>
+                )}
+
+                {/* Per-Location Breakdown & Notes */}
+                {entry.locations && entry.locations.length > 0 && (
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1.5">
+                    <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
+                      <MapPin className="h-3 w-3 text-slate-400" />
+                      <span>แยกตามจุดวาง ({entry.locations.length} จุด)</span>
+                    </span>
+                    <div className="space-y-1">
+                      {entry.locations.map((loc, lIdx) => (
+                        <div
+                          key={loc.id || loc.client_id || lIdx}
+                          className="rounded-xl bg-slate-50/90 p-2 border border-slate-200/70 text-xs shadow-2xs"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-slate-700">
+                              ล็อค {loc.lock_code} แถว {loc.row_code}
+                            </span>
+                            <span className="font-mono font-bold text-slate-900">
+                              {formatNumber(loc.counted_quantity)} {item ? item.unit : "หน่วย"}
+                            </span>
+                          </div>
+                          {loc.note && (
+                            <div className="mt-1 flex items-start gap-1 text-[11px] text-amber-900 bg-amber-50/80 px-2 py-1 rounded-lg border border-amber-200/60">
+                              <StickyNote className="h-3 w-3 text-amber-600 shrink-0 mt-0.5" />
+                              <span className="font-medium">{loc.note}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             );

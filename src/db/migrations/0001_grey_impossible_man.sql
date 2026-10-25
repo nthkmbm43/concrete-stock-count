@@ -1,0 +1,1 @@
+ALTER TABLE "stock_count_locations" ADD COLUMN "note" text;
