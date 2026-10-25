@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Plus, Package, Rows3 } from "lucide-react";
 import { toast } from "sonner";
+import { StyledSelect } from "@/components/ui/styled-select";
+import { MASTER_PLANTS } from "@/lib/master-data";
 
 interface AddLocationSheetProps {
   open: boolean;
@@ -94,16 +96,19 @@ export const AddLocationSheet: React.FC<AddLocationSheetProps> = ({
             <label className="text-xs font-bold text-slate-700 block mb-1">
               โรงงาน
             </label>
-            <select
+            <StyledSelect
               value={plantId}
-              onChange={(e) => setPlantId(parseInt(e.target.value))}
-              className="w-full h-11 rounded-2xl border-2 border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-600"
-            >
-              <option value={1}>โรง 1 (คลังวัตถุดิบ)</option>
-              <option value={2}>โรง 2 (คลังสินค้า 2)</option>
-              <option value={3}>โรง 3 (ผลิตภัณฑ์สำเร็จรูป)</option>
-              <option value={4}>โรง 4 (สินค้าภายนอก)</option>
-            </select>
+              onChange={(val) => setPlantId(Number(val))}
+              options={MASTER_PLANTS.map((p) => ({
+                value: p.id,
+                label: p.name,
+                sublabel: p.subname,
+                description: p.description,
+                icon: p.icon,
+                colorName: p.colorName,
+              }))}
+              title="เลือกโรงงาน"
+            />
           </div>
 
           {/* Lock & Row */}

@@ -564,34 +564,74 @@ export class DataProvider {
   }
 
   // Admin Item Management
-  static async saveItem(item: Partial<InventoryItem>): Promise<InventoryItem> {
+  static async saveItem(item: Partial<InventoryItem> & { default_lock?: string; default_row?: string }): Promise<InventoryItem> {
     const items = await this.getItems();
     const nowIso = new Date().toISOString();
     let saved: InventoryItem;
 
     if (item.id) {
+      const existing = items.find((i) => i.id === item.id);
+      let updatedLocations = item.locations ?? existing?.locations ?? [];
+      
+      // If no locations exist and default_lock is specified, add it
+      if (updatedLocations.length === 0 && item.default_lock) {
+        updatedLocations = [
+          {
+            id: "loc-" + Math.random().toString(36).substring(2, 9),
+            inventory_item_id: item.id,
+            lock_code: item.default_lock,
+            row_code: item.default_row || "1",
+            expected_quantity: item.current_quantity ?? existing?.current_quantity ?? 0,
+            source_type: "SYSTEM",
+          },
+        ];
+      }
+
       saved = {
-        ...items.find((i) => i.id === item.id)!,
+        ...existing,
         ...item,
+        height: item.height ?? existing?.height,
+        width: item.width ?? existing?.width,
+        length: item.length ?? existing?.length,
+        locations: updatedLocations,
+        is_active: (item.status ?? existing?.status) === "ACTIVE",
         updated_at: nowIso,
       } as InventoryItem;
       const updated = items.map((i) => (i.id === item.id ? saved : i));
       setStored(STORAGE_KEYS.ITEMS, updated);
     } else {
+      const newItemId = "item-" + Math.random().toString(36).substring(2, 9);
+      let initialLocations = item.locations || [];
+      if (initialLocations.length === 0 && item.default_lock) {
+        initialLocations = [
+          {
+            id: "loc-" + Math.random().toString(36).substring(2, 9),
+            inventory_item_id: newItemId,
+            lock_code: item.default_lock,
+            row_code: item.default_row || "1",
+            expected_quantity: item.current_quantity || 0,
+            source_type: "SYSTEM",
+          },
+        ];
+      }
+
       saved = {
-        id: "item-" + Math.random().toString(36).substring(2, 9),
+        id: newItemId,
         sku: item.sku || "SKU-" + Date.now().toString().slice(-4),
         name: item.name || "สินค้าใหม่",
         category: item.category || "finished_goods",
         variant: item.variant || "-",
         size: item.size || "-",
+        height: item.height,
+        width: item.width,
+        length: item.length,
         unit: item.unit || "ชิ้น",
         plant_id: item.plant_id || 1,
         zone: item.zone || "Zone A",
         current_quantity: item.current_quantity || 0,
         status: item.status || "ACTIVE",
-        is_active: true,
-        locations: [],
+        is_active: (item.status || "ACTIVE") === "ACTIVE",
+        locations: initialLocations,
         created_at: nowIso,
         updated_at: nowIso,
       };

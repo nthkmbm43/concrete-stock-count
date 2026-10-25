@@ -472,6 +472,7 @@ export default function MobileApp() {
         open={productModalOpen}
         onOpenChange={setProductModalOpen}
         item={editingItem}
+        existingItems={items}
         onSave={handleSaveItem}
       />
 

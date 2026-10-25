@@ -18,7 +18,7 @@ export interface Plant {
   total_skus: number;
 }
 
-export type ItemCategory = "raw_material" | "finished_goods";
+export type ItemCategory = "raw_material" | "finished_goods" | "consumables" | "others";
 export type ItemStatus = "ACTIVE" | "INACTIVE";
 
 // Storage Position (Plant, Lock, Row)
