@@ -7,7 +7,7 @@ export const auth = betterAuth({
   baseURL:
     process.env.BETTER_AUTH_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
-    "http://localhost:3000",
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
   secret: process.env.BETTER_AUTH_SECRET || "concrete-stock-count-default-secret-key-32chars",
   database: db
     ? drizzleAdapter(db, {
