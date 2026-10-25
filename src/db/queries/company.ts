@@ -25,7 +25,7 @@ export const DEFAULT_KCON_COMPANY_SETTINGS: CompanySettingsData = {
   phone: "043-255-111",
   email: "kcon.eng@gmail.com",
   website: "www.kcon-concrete.com",
-  logoUrl: null,
+  logoUrl: "/logo.png",
   reportFooter: "เอกสารรายงานผลการตรวจนับคลังสินค้าคอนกรีต • ระบบ Concrete Mobile Stock Counting",
   dataSourceNotice: "ข้อมูลเริ่มต้นจากแหล่งข้อมูลสาธารณะของบริษัท",
 };
@@ -58,7 +58,7 @@ export async function getCompanySettings(): Promise<CompanySettingsData> {
       phone: row.phone,
       email: row.email,
       website: row.website,
-      logoUrl: row.logoUrl,
+      logoUrl: row.logoUrl || "/logo.png",
       reportFooter: row.reportFooter,
       dataSourceNotice: row.dataSourceNotice,
       updatedAt: row.updatedAt,

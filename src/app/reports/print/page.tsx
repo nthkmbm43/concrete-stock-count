@@ -109,9 +109,11 @@ async function PrintDocumentContent({ searchParams }: PageProps) {
                       className="h-12 w-auto object-contain"
                     />
                   ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-900 text-white font-black text-base print:border print:border-black">
-                      K
-                    </div>
+                    <img
+                      src="/logo.png"
+                      alt={summary.brandName || "KCON"}
+                      className="h-12 w-auto object-contain"
+                    />
                   )}
                   <div>
                     <h1 className="text-xl font-bold text-blue-900 print:text-black tracking-tight">

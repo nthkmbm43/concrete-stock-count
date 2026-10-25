@@ -29,7 +29,7 @@ export async function runSeed() {
       phone: "043-255-111",
       email: "kcon.eng@gmail.com",
       website: "www.kcon-concrete.com",
-      logoUrl: null,
+      logoUrl: "/logo.png",
       reportFooter:
         "เอกสารรายงานผลการตรวจนับคลังสินค้าคอนกรีต • ระบบ Concrete Mobile Stock Counting",
       dataSourceNotice:
