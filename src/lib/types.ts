@@ -98,6 +98,7 @@ export interface StockCountLocation {
   counted_quantity: number;
   difference: number;
   source_type?: "SYSTEM" | "NEW";
+  observation_status?: "FOUND" | "MOVED" | "NOT_FOUND" | "NEW_LOCATION";
   client_id?: string;
   created_at?: string;
 }
@@ -118,14 +119,18 @@ export interface StockCount {
   counted_at: string;
   submitted_at?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface StockAdjustment {
   id: string;
   inventory_item_id: string;
-  plant_id: number;
-  adjusted_by: string;
-  adjusted_by_name: string;
+  plant_id?: number;
+  admin_id?: string;
+  admin_name?: string;
+  adjusted_by?: string;
+  adjusted_by_name?: string;
+  old_quantity?: number;
   previous_quantity: number;
   new_quantity: number;
   difference: number;
@@ -143,12 +148,16 @@ export interface PlantCountProgress {
 
 export interface RoundProgress {
   count_round_id: string;
+  round_id?: string;
   total_skus: number;
   counted_skus: number;
   uncounted_skus: number;
-  recounted_skus: number;
-  difference_skus: number;
+  recounted_skus?: number;
+  difference_skus?: number;
   percentage: number;
+  matched_count?: number;
+  over_count?: number;
+  under_count?: number;
   plants: PlantCountProgress[];
 }
 

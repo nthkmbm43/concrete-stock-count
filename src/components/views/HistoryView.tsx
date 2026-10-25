@@ -69,7 +69,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         id: a.id,
         type: "ADJUSTMENT",
         item_id: a.inventory_item_id,
-        plant_id: a.plant_id,
+        plant_id: a.plant_id || 1,
         by_name: `${a.adjusted_by_name} (แอดมิน)`,
         quantity: a.new_quantity,
         previous_quantity: a.previous_quantity,

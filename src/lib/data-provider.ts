@@ -18,7 +18,11 @@ import {
   MOCK_STOCK_COUNTS,
   MOCK_ADJUSTMENTS,
 } from "./mock-data";
-import { supabase, isSupabaseConfigured } from "./supabase";
+import {
+  submitStockCountAction,
+  adjustStockAction,
+  saveProductAction,
+} from "@/actions/stock-actions";
 
 const STORAGE_KEYS = {
   CURRENT_USER: "cc_current_user_v2",
@@ -62,56 +66,38 @@ function notifyRealtime(type: string, payload: unknown) {
 }
 
 export class DataProvider {
-  // Current logged in user
-  static getCurrentUser(): UserProfile {
-    return getStored<UserProfile>(STORAGE_KEYS.CURRENT_USER, MOCK_USERS[0]);
+  // Current User Management
+  static async getCurrentUser(): Promise<UserProfile> {
+    const stored = getStored<UserProfile | null>(STORAGE_KEYS.CURRENT_USER, null);
+    if (stored) return stored;
+    return MOCK_USERS[1]; // Default to Somchai (Staff)
   }
 
-  static setCurrentUser(user: UserProfile): void {
+  static getCurrentUserSync(): UserProfile {
+    const stored = getStored<UserProfile | null>(STORAGE_KEYS.CURRENT_USER, null);
+    return stored || MOCK_USERS[1];
+  }
+
+  static async setCurrentUser(user: UserProfile): Promise<void> {
     setStored(STORAGE_KEYS.CURRENT_USER, user);
-    notifyRealtime("USER_SWITCHED", user);
+    notifyRealtime("USER_CHANGED", user);
   }
 
-  static getUsers(): UserProfile[] {
+  static async getUsers(): Promise<UserProfile[]> {
+    return MOCK_USERS;
+  }
+
+  static getUsersSync(): UserProfile[] {
     return MOCK_USERS;
   }
 
   // Plants
   static async getPlants(): Promise<Plant[]> {
-    try {
-      if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from("plants").select("*").order("id");
-        if (!error && data && data.length > 0) return data;
-      }
-    } catch (e) {
-      console.warn("Supabase getPlants error, using local fallback:", e);
-    }
     return getStored<Plant[]>(STORAGE_KEYS.PLANTS, MOCK_PLANTS);
   }
 
   // Count Rounds
   static async getCountRounds(): Promise<CountRound[]> {
-    try {
-      if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase
-          .from("count_rounds")
-          .select(`
-            *,
-            count_round_plants (plant_id)
-          `)
-          .order("start_date", { ascending: false });
-        if (!error && data && data.length > 0) {
-          return data.map((r) => ({
-            ...r,
-            name: r.name || r.title,
-            title: r.title || r.name,
-            plant_ids: r.count_round_plants?.map((p: { plant_id: number }) => p.plant_id) || [1, 2, 3, 4],
-          }));
-        }
-      }
-    } catch (e) {
-      console.warn("Supabase getCountRounds error, using local fallback:", e);
-    }
     return getStored<CountRound[]>(STORAGE_KEYS.ROUNDS, MOCK_ROUNDS);
   }
 
@@ -123,25 +109,6 @@ export class DataProvider {
 
   // Items
   static async getItems(): Promise<InventoryItem[]> {
-    try {
-      if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase
-          .from("inventory_items")
-          .select(`
-            *,
-            inventory_item_locations (*)
-          `)
-          .order("sku");
-        if (!error && data && data.length > 0) {
-          return data.map((i) => ({
-            ...i,
-            locations: i.inventory_item_locations || [],
-          }));
-        }
-      }
-    } catch (e) {
-      console.warn("Supabase getItems error, using local fallback:", e);
-    }
     return getStored<InventoryItem[]>(STORAGE_KEYS.ITEMS, MOCK_ITEMS);
   }
 
@@ -152,29 +119,6 @@ export class DataProvider {
 
   // Stock Counts
   static async getStockCounts(roundId?: string): Promise<StockCount[]> {
-    try {
-      if (isSupabaseConfigured && supabase) {
-        let query = supabase
-          .from("stock_counts")
-          .select(`
-            *,
-            stock_count_locations (*)
-          `)
-          .order("counted_at", { ascending: false });
-        if (roundId) {
-          query = query.eq("count_round_id", roundId);
-        }
-        const { data, error } = await query;
-        if (!error && data) {
-          return data.map((c) => ({
-            ...c,
-            locations: c.stock_count_locations || [],
-          }));
-        }
-      }
-    } catch (e) {
-      console.warn("Supabase getStockCounts error, using local fallback:", e);
-    }
     const all = getStored<StockCount[]>(STORAGE_KEYS.COUNTS, MOCK_STOCK_COUNTS);
     if (roundId) {
       return all.filter((c) => c.count_round_id === roundId);
@@ -182,147 +126,150 @@ export class DataProvider {
     return all;
   }
 
-  // Get item history with full location breakdown!
-  static async getItemHistory(itemId: string) {
-    const counts = (await this.getStockCounts()).filter((c) => c.inventory_item_id === itemId);
-    const adjustments = (await this.getAdjustments()).filter((a) => a.inventory_item_id === itemId);
+  static async getItemHistory(itemId: string, roundId?: string): Promise<StockCount[]> {
+    const counts = await this.getStockCounts(roundId);
+    return counts.filter((c) => c.inventory_item_id === itemId);
+  }
 
-    const historyItems = [
-      ...counts.map((c) => ({
-        type: "COUNT" as const,
-        id: c.id,
-        quantity: c.counted_quantity,
-        previous_quantity: c.previous_quantity,
-        difference: c.difference,
-        by_name: c.user_name,
-        timestamp: c.submitted_at || c.counted_at,
-        notes: c.notes,
-        status: c.status,
-        locations: c.locations || [],
-      })),
-      ...adjustments.map((a) => ({
-        type: "ADJUSTMENT" as const,
-        id: a.id,
-        quantity: a.new_quantity,
-        previous_quantity: a.previous_quantity,
-        difference: a.difference,
-        by_name: `${a.adjusted_by_name} (แอดมิน)`,
-        timestamp: a.created_at,
-        notes: a.reason,
-        status: "ADJUSTED" as const,
-        locations: [] as StockCountLocation[],
-      })),
-    ];
+  static async getDraftCount(roundId: string, itemId: string): Promise<StockCount | null> {
+    const drafts = getStored<Record<string, StockCount>>(STORAGE_KEYS.DRAFTS, {});
+    return drafts[`${roundId}_${itemId}`] || null;
+  }
 
-    return historyItems.sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+  static getItemDraftSync(itemId: string, roundId: string): StockCount | null {
+    const drafts = getStored<Record<string, StockCount>>(STORAGE_KEYS.DRAFTS, {});
+    return drafts[`${roundId}_${itemId}`] || null;
+  }
+
+  static async getItemDraft(roundId: string, itemId: string): Promise<StockCount | null> {
+    return this.getDraftCount(roundId, itemId);
+  }
+
+  static async saveDraftCount(count: Partial<StockCount>): Promise<StockCount> {
+    return this.saveDraft(count);
+  }
+
+  static async saveDraft(count: Partial<StockCount>): Promise<StockCount> {
+    const drafts = getStored<Record<string, StockCount>>(STORAGE_KEYS.DRAFTS, {});
+    const key = `${count.count_round_id}_${count.inventory_item_id}`;
+    const user = await this.getCurrentUser();
+    const existing = drafts[key];
+    const nowIso = new Date().toISOString();
+
+    const draftRecord: StockCount = {
+      id: existing?.id || "draft-" + Math.random().toString(36).substring(2, 9),
+      count_round_id: count.count_round_id!,
+      plant_id: count.plant_id!,
+      inventory_item_id: count.inventory_item_id!,
+      user_id: user.id,
+      user_name: user.full_name,
+      previous_quantity: count.previous_quantity || 0,
+      counted_quantity: count.counted_quantity || 0,
+      difference: (count.counted_quantity || 0) - (count.previous_quantity || 0),
+      status: "DRAFT",
+      notes: count.notes,
+      locations: count.locations || [],
+      counted_at: existing?.counted_at || nowIso,
+      created_at: existing?.created_at || nowIso,
+      updated_at: nowIso,
+    };
+
+    drafts[key] = draftRecord;
+    setStored(STORAGE_KEYS.DRAFTS, drafts);
+    notifyRealtime("DRAFT_SAVED", draftRecord);
+    return draftRecord;
   }
 
   // Stock Adjustments
   static async getAdjustments(): Promise<StockAdjustment[]> {
-    try {
-      if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase
-          .from("stock_adjustments")
-          .select("*")
-          .order("created_at", { ascending: false });
-        if (!error && data) return data;
-      }
-    } catch (e) {
-      console.warn("Supabase getAdjustments error, using local fallback:", e);
-    }
     return getStored<StockAdjustment[]>(STORAGE_KEYS.ADJUSTMENTS, MOCK_ADJUSTMENTS);
   }
 
   // Calculate Progress
   static async getRoundProgress(roundId: string): Promise<RoundProgress> {
     const rounds = await this.getCountRounds();
-    const round = rounds.find((r) => r.id === roundId) || rounds[0] || MOCK_ROUNDS[0];
-    const plants = await this.getPlants();
+    const round = rounds.find((r) => r.id === roundId) || rounds[0];
     const items = await this.getItems();
-    const counts = await this.getStockCounts(round.id);
+    const counts = await this.getStockCounts(roundId);
 
-    const activePlantIds = new Set(round.plant_ids || [1, 2, 3, 4]);
-    const roundItems = items.filter((item) => activePlantIds.has(item.plant_id));
+    const relevantItems = items.filter((item) =>
+      round?.plant_ids ? round.plant_ids.includes(item.plant_id) : true
+    );
 
     const submittedCounts = counts.filter((c) => c.status === "SUBMITTED");
-    const countOccurrences = new Map<string, number>();
-    const countDifferences = new Map<string, number>();
+    const countedItemIds = new Set(submittedCounts.map((c) => c.inventory_item_id));
 
-    for (const c of submittedCounts) {
-      const curr = countOccurrences.get(c.inventory_item_id) || 0;
-      countOccurrences.set(c.inventory_item_id, curr + 1);
-      if (c.difference !== 0) {
-        countDifferences.set(c.inventory_item_id, c.difference);
+    const totalSkus = relevantItems.length;
+    const countedSkus = countedItemIds.size;
+    const uncountedSkus = Math.max(0, totalSkus - countedSkus);
+    const percentage = totalSkus > 0 ? Math.round((countedSkus / totalSkus) * 100) : 0;
+
+    let matchedCount = 0;
+    let overCount = 0;
+    let underCount = 0;
+
+    countedItemIds.forEach((itemId) => {
+      const itemCounts = submittedCounts.filter((c) => c.inventory_item_id === itemId);
+      const latestCount = itemCounts[0];
+      if (latestCount) {
+        if (latestCount.difference === 0) matchedCount++;
+        else if (latestCount.difference > 0) overCount++;
+        else underCount++;
       }
-    }
-
-    const countedItemIds = new Set(countOccurrences.keys());
-    const total_skus = roundItems.length;
-    const counted_skus = roundItems.filter((i) => countedItemIds.has(i.id)).length;
-    const uncounted_skus = Math.max(0, total_skus - counted_skus);
-
-    let recounted_skus = 0;
-    countOccurrences.forEach((num) => {
-      if (num >= 2) recounted_skus++;
     });
 
-    const difference_skus = countDifferences.size;
-    const percentage = total_skus > 0 ? Math.round((counted_skus / total_skus) * 100) : 0;
-
-    const plantProgressList: PlantCountProgress[] = plants
-      .filter((p) => activePlantIds.has(p.id))
-      .map((p) => {
-        const pItems = roundItems.filter((item) => item.plant_id === p.id);
-        const pCounted = pItems.filter((item) => countedItemIds.has(item.id)).length;
-        const pPct = pItems.length > 0 ? Math.round((pCounted / pItems.length) * 100) : 0;
+    const plantProgress: PlantCountProgress[] = (round?.plant_ids || [1, 2, 3, 4]).map(
+      (plantId) => {
+        const plantItems = relevantItems.filter((i) => i.plant_id === plantId);
+        const plantCountedIds = new Set(
+          submittedCounts
+            .filter((c) => c.plant_id === plantId)
+            .map((c) => c.inventory_item_id)
+        );
+        const pTotal = plantItems.length;
+        const pCounted = plantCountedIds.size;
         return {
-          plant_id: p.id,
-          plant_name: p.name,
-          total_skus: pItems.length,
+          plant_id: plantId,
+          plant_name: `โรง ${plantId}`,
+          total_skus: pTotal,
           counted_skus: pCounted,
-          percentage: pPct,
+          percentage: pTotal > 0 ? Math.round((pCounted / pTotal) * 100) : 0,
         };
-      });
+      }
+    );
 
     return {
-      count_round_id: round.id,
-      total_skus,
-      counted_skus,
-      uncounted_skus,
-      recounted_skus,
-      difference_skus,
+      count_round_id: roundId,
+      round_id: roundId,
+      total_skus: totalSkus,
+      counted_skus: countedSkus,
+      uncounted_skus: uncountedSkus,
       percentage,
-      plants: plantProgressList,
+      matched_count: matchedCount,
+      over_count: overCount,
+      under_count: underCount,
+      plants: plantProgress,
     };
   }
 
-  // Get active Draft for an item and round
-  static getItemDraft(itemId: string, roundId: string): StockCount | null {
-    const drafts = getStored<Record<string, StockCount>>(STORAGE_KEYS.DRAFTS, {});
-    const key = `${roundId}_${itemId}`;
-    return drafts[key] || null;
-  }
-
-  // Submit Count with multiple storage locations!
+  // Submit Count with Server Transaction
   static async submitCount(params: {
     round_id: string;
-    item_id: string;
     plant_id: number;
+    item_id: string;
     counted_quantity: number;
-    notes?: string;
     locations?: StockCountLocation[];
+    notes?: string;
   }): Promise<StockCount> {
-    const user = this.getCurrentUser();
+    const user = await this.getCurrentUser();
     const items = await this.getItems();
     const item = items.find((i) => i.id === params.item_id);
-    const prevQty = item ? item.current_quantity : 0;
+    const prevQty = item?.current_quantity || 0;
     const diff = params.counted_quantity - prevQty;
     const nowIso = new Date().toISOString();
 
     const newRecord: StockCount = {
-      id: "cnt-" + Math.random().toString(36).substring(2, 9),
+      id: "count-" + Math.random().toString(36).substring(2, 9),
       count_round_id: params.round_id,
       plant_id: params.plant_id,
       inventory_item_id: params.item_id,
@@ -339,45 +286,30 @@ export class DataProvider {
       created_at: nowIso,
     };
 
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data: countData } = await supabase
-          .from("stock_counts")
-          .insert({
-            count_round_id: params.round_id,
-            plant_id: params.plant_id,
-            inventory_item_id: params.item_id,
-            user_id: user.id,
-            user_name: user.full_name,
-            previous_quantity: prevQty,
-            counted_quantity: params.counted_quantity,
-            difference: diff,
-            status: "SUBMITTED",
-            notes: params.notes,
-            counted_at: nowIso,
-            submitted_at: nowIso,
-          })
-          .select()
-          .single();
-
-        if (countData && params.locations && params.locations.length > 0) {
-          const locationRows = params.locations.map((loc) => ({
-            stock_count_id: countData.id,
-            storage_location_id: loc.storage_location_id,
-            lock_code: loc.lock_code,
-            row_code: loc.row_code,
-            previous_quantity: loc.previous_quantity,
-            counted_quantity: loc.counted_quantity,
-            difference: loc.difference,
-          }));
-          await supabase.from("stock_count_locations").insert(locationRows);
-        }
-      } catch (err) {
-        console.warn("Supabase submit count error:", err);
-      }
+    // Trigger atomic server action database transaction
+    try {
+      await submitStockCountAction({
+        roundId: params.round_id,
+        productId: params.item_id,
+        userId: user.id,
+        userName: user.full_name,
+        countedLocations: (params.locations || []).map((l) => ({
+          storageLocationId: l.storage_location_id,
+          sourceType: l.source_type === "NEW" ? "OBSERVED_NEW" : "MASTER",
+          lockCode: l.lock_code,
+          rowCode: l.row_code,
+          previousQuantity: l.previous_quantity,
+          countedQuantity: l.counted_quantity,
+          difference: l.difference,
+          observationStatus: l.observation_status || "FOUND",
+        })),
+        notes: params.notes,
+      });
+    } catch (err) {
+      console.warn("Server action submit count error, keeping local sync:", err);
     }
 
-    // Always update local storage
+    // Always update local cache
     const counts = getStored<StockCount[]>(STORAGE_KEYS.COUNTS, MOCK_STOCK_COUNTS);
     setStored(STORAGE_KEYS.COUNTS, [newRecord, ...counts]);
 
@@ -389,7 +321,6 @@ export class DataProvider {
     // Update item current_quantity and location expected quantities
     const updatedItems = items.map((i) => {
       if (i.id === params.item_id) {
-        // Also update locations if new ones were added
         const existingLocs = i.locations || [];
         const updatedLocs: ItemStorageLocation[] = [...existingLocs];
 
@@ -410,6 +341,7 @@ export class DataProvider {
                 lock_code: pLoc.lock_code,
                 row_code: pLoc.row_code,
                 expected_quantity: pLoc.counted_quantity,
+                source_type: pLoc.source_type || "NEW",
               });
             }
           });
@@ -418,125 +350,70 @@ export class DataProvider {
         return {
           ...i,
           current_quantity: params.counted_quantity,
-          locations: updatedLocs,
           last_counted_at: nowIso,
           last_counted_by: user.id,
           last_counted_by_name: user.full_name,
-          updated_at: nowIso,
+          locations: updatedLocs,
         };
       }
       return i;
     });
+
     setStored(STORAGE_KEYS.ITEMS, updatedItems);
 
     notifyRealtime("COUNT_SUBMITTED", {
+      count: newRecord,
       item_id: params.item_id,
-      counted_quantity: params.counted_quantity,
-      user_name: user.full_name,
-      time: nowIso,
-      locations: params.locations,
+      new_quantity: params.counted_quantity,
     });
 
     return newRecord;
   }
 
-  // Save Draft with storage locations
-  static async saveDraftCount(params: {
-    round_id: string;
-    item_id: string;
-    plant_id: number;
-    counted_quantity: number;
-    notes?: string;
-    locations?: StockCountLocation[];
-  }): Promise<StockCount> {
-    const user = this.getCurrentUser();
-    const items = await this.getItems();
-    const item = items.find((i) => i.id === params.item_id);
-    const prevQty = item ? item.current_quantity : 0;
-    const diff = params.counted_quantity - prevQty;
-    const nowIso = new Date().toISOString();
-
-    const draftRecord: StockCount = {
-      id: "draft-" + Math.random().toString(36).substring(2, 9),
-      count_round_id: params.round_id,
-      plant_id: params.plant_id,
-      inventory_item_id: params.item_id,
-      user_id: user.id,
-      user_name: user.full_name,
-      previous_quantity: prevQty,
-      counted_quantity: params.counted_quantity,
-      difference: diff,
-      status: "DRAFT",
-      notes: params.notes,
-      locations: params.locations || [],
-      counted_at: nowIso,
-      created_at: nowIso,
-    };
-
-    const drafts = getStored<Record<string, StockCount>>(STORAGE_KEYS.DRAFTS, {});
-    drafts[`${params.round_id}_${params.item_id}`] = draftRecord;
-    setStored(STORAGE_KEYS.DRAFTS, drafts);
-
-    return draftRecord;
-  }
-
-  // Add custom storage position found by worker
-  static async addLocationToItem(
-    itemId: string,
-    plantId: number,
-    lockCode: string,
-    rowCode: string,
-    quantity: number = 0
-  ): Promise<ItemStorageLocation> {
-    const items = await this.getItems();
-    const item = items.find((i) => i.id === itemId);
-    const newLoc: ItemStorageLocation = {
-      id: "loc-" + Math.random().toString(36).substring(2, 8),
-      inventory_item_id: itemId,
-      lock_code: lockCode.toUpperCase(),
-      row_code: rowCode,
-      expected_quantity: quantity,
-    };
-
-    if (item) {
-      const existing = item.locations || [];
-      const updated = [...existing, newLoc];
-      const updatedItems = items.map((i) => (i.id === itemId ? { ...i, locations: updated } : i));
-      setStored(STORAGE_KEYS.ITEMS, updatedItems);
-    }
-
-    return newLoc;
-  }
-
-  // Admin Stock Adjustment
+  // Admin Stock Adjustment with Server Action
   static async adjustStock(params: {
     item_id: string;
-    plant_id: number;
     new_quantity: number;
     reason: string;
   }): Promise<StockAdjustment> {
-    const user = this.getCurrentUser();
+    const user = await this.getCurrentUser();
     const items = await this.getItems();
     const item = items.find((i) => i.id === params.item_id);
-    const prevQty = item ? item.current_quantity : 0;
-    const diff = params.new_quantity - prevQty;
+    const oldQty = item?.current_quantity || 0;
+    const diff = params.new_quantity - oldQty;
     const nowIso = new Date().toISOString();
 
     const adjRecord: StockAdjustment = {
       id: "adj-" + Math.random().toString(36).substring(2, 9),
       inventory_item_id: params.item_id,
-      plant_id: params.plant_id,
-      adjusted_by: user.id,
-      adjusted_by_name: user.full_name,
-      previous_quantity: prevQty,
+      admin_id: user.id,
+      admin_name: user.full_name,
+      old_quantity: oldQty,
+      previous_quantity: oldQty,
       new_quantity: params.new_quantity,
       difference: diff,
       reason: params.reason,
       created_at: nowIso,
     };
 
-    const adjs = getStored<StockAdjustment[]>(STORAGE_KEYS.ADJUSTMENTS, MOCK_ADJUSTMENTS);
-    setStored(STORAGE_KEYS.ADJUSTMENTS, [adjRecord, ...adjs]);
+    // Trigger server action with role verification
+    try {
+      await adjustStockAction({
+        productId: params.item_id,
+        adminUserId: user.id,
+        adminRole: user.role,
+        newQuantity: params.new_quantity,
+        reason: params.reason,
+      });
+    } catch (err) {
+      console.warn("Server action adjust stock error:", err);
+    }
+
+    const adjustments = getStored<StockAdjustment[]>(
+      STORAGE_KEYS.ADJUSTMENTS,
+      MOCK_ADJUSTMENTS
+    );
+    setStored(STORAGE_KEYS.ADJUSTMENTS, [adjRecord, ...adjustments]);
 
     const updatedItems = items.map((i) => {
       if (i.id === params.item_id) {
@@ -545,8 +422,7 @@ export class DataProvider {
           current_quantity: params.new_quantity,
           last_counted_at: nowIso,
           last_counted_by: user.id,
-          last_counted_by_name: user.full_name + " (แอดมิน)",
-          updated_at: nowIso,
+          last_counted_by_name: user.full_name + " (ปรับยอดสต๊อก)",
         };
       }
       return i;
@@ -564,7 +440,10 @@ export class DataProvider {
   }
 
   // Admin Item Management
-  static async saveItem(item: Partial<InventoryItem> & { default_lock?: string; default_row?: string }): Promise<InventoryItem> {
+  static async saveItem(
+    item: Partial<InventoryItem> & { default_lock?: string; default_row?: string }
+  ): Promise<InventoryItem> {
+    const user = await this.getCurrentUser();
     const items = await this.getItems();
     const nowIso = new Date().toISOString();
     let saved: InventoryItem;
@@ -572,8 +451,7 @@ export class DataProvider {
     if (item.id) {
       const existing = items.find((i) => i.id === item.id);
       let updatedLocations = item.locations ?? existing?.locations ?? [];
-      
-      // If no locations exist and default_lock is specified, add it
+
       if (updatedLocations.length === 0 && item.default_lock) {
         updatedLocations = [
           {
@@ -638,11 +516,34 @@ export class DataProvider {
       setStored(STORAGE_KEYS.ITEMS, [saved, ...items]);
     }
 
+    // Call server action for PostgreSQL persistence
+    try {
+      await saveProductAction({
+        adminRole: user.role,
+        id: item.id,
+        sku: saved.sku,
+        name: saved.name,
+        categoryId: saved.category,
+        plantId: saved.plant_id,
+        variant: saved.variant,
+        heightValue: saved.height,
+        widthValue: saved.width,
+        lengthValue: saved.length,
+        stockUnitId: saved.unit,
+        currentQuantity: saved.current_quantity,
+        status: saved.status,
+        defaultLock: item.default_lock,
+        defaultRow: item.default_row,
+      });
+    } catch (err) {
+      console.warn("Server action save product error:", err);
+    }
+
     notifyRealtime("ITEM_SAVED", saved);
     return saved;
   }
 
-  // Subscribe to realtime updates
+  // Subscribe to realtime updates via BroadcastChannel
   static onStockUpdate(callback: (event: { type: string; payload: unknown }) => void) {
     if (typeof window === "undefined") return () => {};
 
@@ -653,37 +554,9 @@ export class DataProvider {
       realtimeChannel.addEventListener("message", handleMessage);
     }
 
-    let supabaseSub: any = null;
-    if (isSupabaseConfigured && supabase) {
-      try {
-        supabaseSub = supabase
-          .channel("public:stock_updates")
-          .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "stock_counts" },
-            (payload: any) => {
-              callback({ type: "COUNT_SUBMITTED", payload: payload.new });
-            }
-          )
-          .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "inventory_items" },
-            (payload: any) => {
-              callback({ type: "ITEM_SAVED", payload: payload.new });
-            }
-          )
-          .subscribe();
-      } catch (err) {
-        console.warn("Realtime subscription error:", err);
-      }
-    }
-
     return () => {
       if (realtimeChannel) {
         realtimeChannel.removeEventListener("message", handleMessage);
-      }
-      if (supabaseSub && supabase) {
-        supabase.removeChannel(supabaseSub);
       }
     };
   }

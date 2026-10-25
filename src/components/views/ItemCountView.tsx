@@ -140,12 +140,12 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
   // Setup initial locations when item or round changes
   useEffect(() => {
     // 1. Check for draft first
-    const draft = DataProvider.getItemDraft(item.id, round.id);
+    const draft = DataProvider.getItemDraftSync(item.id, round.id);
 
     if (draft && draft.locations && draft.locations.length > 0) {
       setHasDraft(true);
       setLocations(
-        draft.locations.map((loc, idx) => ({
+        draft.locations.map((loc: StockCountLocation, idx: number) => ({
           client_id: loc.client_id || `draft-loc-${idx}-${Date.now()}`,
           source_type: (loc.source_type as "SYSTEM" | "NEW") || (loc.previous_quantity > 0 ? "SYSTEM" : "NEW"),
           storage_location_id: loc.storage_location_id,

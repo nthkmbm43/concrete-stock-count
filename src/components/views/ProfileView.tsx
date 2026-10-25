@@ -9,7 +9,6 @@ import {
 } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { isSupabaseConfigured } from "@/lib/supabase";
 import {
   User,
   ShieldCheck,
@@ -268,37 +267,37 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </h4>
 
         <div className="space-y-2 text-xs">
-          {/* Supabase Status */}
+          {/* Neon Database Status */}
           <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
             <div className="flex items-center gap-2 font-semibold text-slate-700">
               <Database className="h-4 w-4 text-emerald-600" />
-              <span>ฐานข้อมูล Supabase PostgreSQL</span>
+              <span>ฐานข้อมูล Neon PostgreSQL</span>
             </div>
-            <Badge variant={isSupabaseConfigured ? "success" : "secondary"} className="text-[10px]">
-              {isSupabaseConfigured ? "Connected (Cloud)" : "Local Reactive State Ready"}
+            <Badge variant="success" className="text-[10px]">
+              Drizzle ORM Ready
             </Badge>
           </div>
 
-          {/* Realtime Channel Status */}
+          {/* Better Auth Status */}
           <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
             <div className="flex items-center gap-2 font-semibold text-slate-700">
-              <Radio className="h-4 w-4 text-blue-600" />
-              <span>Supabase Realtime / Broadcast</span>
+              <ShieldCheck className="h-4 w-4 text-blue-600" />
+              <span>ระบบยืนยันตัวตน Better Auth</span>
             </div>
             <span className="font-bold text-emerald-600 flex items-center gap-1">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Active
+              Session Active
             </span>
           </div>
 
-          {/* Supabase Schema file link reminder */}
+          {/* Drizzle Migrations */}
           <div className="flex items-center justify-between p-2.5 rounded-xl bg-blue-50/60 border border-blue-200/60 text-blue-900">
             <div className="flex items-center gap-2 font-semibold">
               <FileCode className="h-4 w-4 text-blue-600" />
-              <span>ไฟล์ SQL Schema & Seeds</span>
+              <span>Drizzle Schema & Migrations</span>
             </div>
             <span className="font-mono text-[10px] text-blue-700 font-bold">
-              supabase/schema.sql
+              src/db/schema.ts
             </span>
           </div>
         </div>

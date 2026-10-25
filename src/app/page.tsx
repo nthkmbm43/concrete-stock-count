@@ -30,8 +30,8 @@ import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function MobileApp() {
   // 1. Core State
-  const [currentUser, setCurrentUser] = useState<UserProfile>(() => DataProvider.getCurrentUser());
-  const [users] = useState<UserProfile[]>(() => DataProvider.getUsers());
+  const [currentUser, setCurrentUser] = useState<UserProfile>(() => DataProvider.getCurrentUserSync());
+  const [users] = useState<UserProfile[]>(() => DataProvider.getUsersSync());
   const [currentTab, setCurrentTab] = useState<NavTab>("home");
 
   // Navigation inside Count flow
@@ -394,7 +394,19 @@ export default function MobileApp() {
               onBack={() => setSelectedItem(null)}
               onSubmitCount={handleSubmitCount}
               onSaveDraft={handleSaveDraft}
-              fetchItemHistory={(id) => DataProvider.getItemHistory(id)}
+              fetchItemHistory={async (id) => {
+                const history = await DataProvider.getItemHistory(id);
+                return history.map((c) => ({
+                  id: c.id,
+                  type: "COUNT" as const,
+                  quantity: c.counted_quantity,
+                  previous_quantity: c.previous_quantity,
+                  difference: c.difference,
+                  by_name: c.user_name,
+                  timestamp: c.submitted_at || c.counted_at || c.created_at,
+                  note: c.notes,
+                }));
+              }}
               onSelectNextItem={(next) => setSelectedItem(next)}
             />
           ) : (
