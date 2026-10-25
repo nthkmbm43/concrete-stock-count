@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Search, Filter, Layers, ArrowLeft, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface CountRoundViewProps {
   round: CountRound;
@@ -38,6 +39,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
   onCountItem,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [filterStatus, setFilterStatus] = useState<CountFilter>("ALL");
 
   // Selected plant object
@@ -64,11 +66,11 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
     return map;
   }, [counts, round.id]);
 
-  // Filtered items
+  // Filtered items (Rule 23: 300ms Debounce)
   const filteredItems = useMemo(() => {
     return plantItems.filter((item) => {
       // 1. Search Query
-      const q = searchQuery.toLowerCase().trim();
+      const q = debouncedSearch.toLowerCase().trim();
       const matchesSearch =
         !q ||
         item.sku.toLowerCase().includes(q) ||
@@ -91,7 +93,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
       }
       return true;
     });
-  }, [plantItems, searchQuery, filterStatus, itemCountsMap]);
+  }, [plantItems, debouncedSearch, filterStatus, itemCountsMap]);
 
   // Count stats for filter chips
   const filterStats = useMemo(() => {

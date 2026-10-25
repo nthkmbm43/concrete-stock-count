@@ -7,6 +7,7 @@ import { DifferenceBadge } from "@/components/count/DifferenceBadge";
 import { formatNumber, formatDateTime } from "@/lib/utils";
 import { Search, History, Clock, User, ShieldAlert, CheckCircle2, MapPin, StickyNote } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface CombinedHistoryItem {
   id: string;
@@ -36,6 +37,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   plants,
 }) => {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [selectedPlant, setSelectedPlant] = useState<number | "ALL">("ALL");
   const [selectedType, setSelectedType] = useState<"ALL" | "COUNT" | "ADJUSTMENT">("ALL");
 
@@ -91,8 +93,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
     return combinedList.filter((entry) => {
       const item = itemMap.get(entry.item_id);
 
-      // Search
-      const q = search.toLowerCase().trim();
+      // Search (Rule 23: 300ms Debounce)
+      const q = debouncedSearch.toLowerCase().trim();
       const matchesSearch =
         !q ||
         entry.by_name.toLowerCase().includes(q) ||

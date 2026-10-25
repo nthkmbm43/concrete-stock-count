@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,13 +24,16 @@ export const RoundManagementModal: React.FC<RoundManagementModalProps> = ({
   const [title, setTitle] = useState("");
   const [type, setType] = useState<CountRoundType>("MONTHLY");
   const [selectedPlants, setSelectedPlants] = useState<number[]>([1, 2, 3, 4]);
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
-    new Date(),
-    new Date(Date.now() + 7 * 86400000),
-  ]);
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
   const [notes, setNotes] = useState("");
   const [showCalendar, setShowCalendar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!dateRange[0]) {
+      setDateRange([new Date(), new Date(Date.now() + 7 * 86400000)]);
+    }
+  }, []);
 
   const togglePlant = (id: number) => {
     if (selectedPlants.includes(id)) {

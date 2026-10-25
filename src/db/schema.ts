@@ -146,6 +146,7 @@ export const storageLocations = pgTable(
   (table) => [
     index("storage_loc_plant_idx").on(table.plantId),
     index("storage_loc_lock_idx").on(table.lockCode),
+    index("storage_loc_plant_lock_idx").on(table.plantId, table.lockCode),
   ]
 );
 
@@ -179,8 +180,10 @@ export const products = pgTable(
   },
   (table) => [
     uniqueIndex("product_sku_idx").on(table.sku),
+    index("product_name_idx").on(table.name),
     index("product_plant_idx").on(table.plantId),
     index("product_category_idx").on(table.categoryId),
+    index("product_plant_sku_idx").on(table.plantId, table.sku),
   ]
 );
 
@@ -274,6 +277,7 @@ export const stockCounts = pgTable(
     index("stock_count_user_idx").on(table.userId),
     index("stock_count_status_idx").on(table.status),
     index("stock_count_submitted_idx").on(table.submittedAt),
+    index("stock_count_round_prod_idx").on(table.roundId, table.productId),
   ]
 );
 
@@ -301,6 +305,7 @@ export const stockCountLocations = pgTable(
   },
   (table) => [
     index("sc_loc_count_idx").on(table.stockCountId),
+    index("sc_loc_storage_idx").on(table.storageLocationId),
     index("sc_loc_lock_row_idx").on(table.lockCode, table.rowCode),
   ]
 );
@@ -442,5 +447,16 @@ export const stockCountLocationsRelations = relations(stockCountLocations, ({ on
   storageLocation: one(storageLocations, {
     fields: [stockCountLocations.storageLocationId],
     references: [storageLocations.id],
+  }),
+}));
+
+export const stockAdjustmentsRelations = relations(stockAdjustments, ({ one }) => ({
+  product: one(products, {
+    fields: [stockAdjustments.productId],
+    references: [products.id],
+  }),
+  adminUser: one(user, {
+    fields: [stockAdjustments.adminUserId],
+    references: [user.id],
   }),
 }));

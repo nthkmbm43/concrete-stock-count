@@ -84,15 +84,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
             รอบนับที่กำลังเปิด (Count Round)
           </h3>
           <span className="text-xs font-semibold text-blue-600">
-            {activeRound.type === "MONTHLY" ? "รอบหลักประจำเดือน" : "รอบตรวจย่อย"}
+            {activeRound?.type === "MONTHLY" ? "รอบหลักประจำเดือน" : "รอบตรวจย่อย"}
           </span>
         </div>
 
-        <RoundBanner
-          round={activeRound}
-          progress={progress || undefined}
-          onEnterRound={onEnterRound}
-        />
+        {activeRound ? (
+          <RoundBanner
+            round={activeRound}
+            progress={progress || undefined}
+            onEnterRound={onEnterRound}
+          />
+        ) : (
+          <div className="p-4 rounded-3xl bg-slate-100 border border-slate-200 text-center text-xs text-slate-500 font-bold">
+            ยังไม่มีรอบนับที่เปิดอยู่
+          </div>
+        )}
       </div>
 
       {/* 4. Plants List (4 Plants Cards per Requirement #17) */}

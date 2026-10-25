@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber, formatDateTime } from "@/lib/utils";
+import { useDebounce } from "@/hooks/use-debounce";
 import {
   Search,
   Wrench,
@@ -33,16 +34,17 @@ export const StockView: React.FC<StockViewProps> = ({
   onCountItem,
 }) => {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [selectedPlant, setSelectedPlant] = useState<number | "ALL">("ALL");
   const [selectedCategory, setSelectedCategory] = useState<"ALL" | "raw_material" | "finished_goods">("ALL");
 
   const isAdmin = currentUser.role === "ADMIN";
 
-  // Filtered Items
+  // Filtered Items (Rule 23: 300ms Debounce)
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       // Search
-      const q = search.toLowerCase().trim();
+      const q = debouncedSearch.toLowerCase().trim();
       const matchesSearch =
         !q ||
         item.sku.toLowerCase().includes(q) ||

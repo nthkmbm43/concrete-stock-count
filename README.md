@@ -207,6 +207,53 @@ Open [http://localhost:3000](http://localhost:3000) on desktop or mobile.
 
 ---
 
+## 5. Realtime & Performance Architecture
+
+The application adopts an enterprise-grade live query and zero-refresh architecture:
+
+```mermaid
+flowchart TD
+    subgraph ClientA["User A (Admin/Staff)"]
+        A_UI["Mobile UI (Optimistic <100ms)"]
+        A_RT["Neon Realtime Provider"]
+    end
+
+    subgraph Server["Next.js Server Actions & SSR"]
+        SSR["Server Component (Zero Skeleton on load)"]
+        DAL["Centralized Data Access Layer (src/db/queries)"]
+        SA["Atomic Domain Actions (src/actions)"]
+        SEAL["Sealed Query Issuer (@neon/realtime/server)"]
+    end
+
+    subgraph Database["Neon PostgreSQL & Realtime"]
+        PG[("PostgreSQL ACID Transaction")]
+        LIVE["Neon Realtime WebSocket Proxy"]
+    end
+
+    subgraph ClientB["User B (Floor Staff)"]
+        B_UI["Mobile UI (Instant Live Update)"]
+        B_RT["Live Query Subscription (useLiveQuery)"]
+    end
+
+    A_UI -- "1. Action (<100ms UI Update)" --> SA
+    SA -- "2. BEGIN ... COMMIT" --> PG
+    PG -- "3. Logical Replication / Live Event" --> LIVE
+    LIVE -- "4. Instant Push" --> B_RT
+    B_RT -- "5. Re-render tanpa Refresh" --> B_UI
+    SSR --> DAL --> PG
+    SEAL --> B_RT
+```
+
+### Key Performance Pillars:
+1. **Zero Full-Page Skeleton on Load**: Initial page load uses Server Components (`src/app/page.tsx`) with parallel `Promise.all` queries and request deduplication via `React.cache()`.
+2. **Neon Realtime Live Queries**: Official SDKs (`@neon/realtime`, `@neon/realtime-react`, `@neon/realtime-drizzle`) with server-side query sealing and client `useLiveQuery`.
+3. **Cross-Tab & Cross-Device Instant Sync**: Mutations broadcast instantly to all tabs via `BroadcastChannel` with fallback sync.
+4. **Optimistic UI with Transaction Rollback**: Local UI responds under 100ms; if server transaction fails, state rolls back automatically.
+5. **No N+1 Queries**: Efficient joins, selective column projection, database-level aggregates for count round progress (`COUNT`, `SUM`, `FILTER`), and indexed search fields.
+6. **Search Debounce**: All product and history searches debounced at 300ms to eliminate query thrashing.
+
+---
+
 ## 9. Deployment on Vercel
 
 1. Push your repository to **GitHub**.
