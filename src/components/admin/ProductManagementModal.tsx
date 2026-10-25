@@ -42,7 +42,7 @@ export const ProductManagementModal: React.FC<ProductManagementModalProps> = ({
       setSize(item.size);
       setUnit(item.unit);
       setPlantId(item.plant_id);
-      setZone(item.zone);
+      setZone(item.zone || "Zone A");
       setQuantity(item.current_quantity);
       setStatus(item.status);
     } else {

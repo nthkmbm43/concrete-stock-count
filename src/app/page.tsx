@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   UserProfile,
   Plant,
@@ -9,6 +9,7 @@ import {
   InventoryItem,
   StockCount,
   StockAdjustment,
+  StockCountLocation,
 } from "@/lib/types";
 import { DataProvider } from "@/lib/data-provider";
 import { MobileShell } from "@/components/layout/MobileShell";
@@ -22,13 +23,15 @@ import { ProfileView } from "@/components/views/ProfileView";
 import { StockAdjustModal } from "@/components/admin/StockAdjustModal";
 import { ProductManagementModal } from "@/components/admin/ProductManagementModal";
 import { RoundManagementModal } from "@/components/admin/RoundManagementModal";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function MobileApp() {
   // 1. Core State
-  const [currentUser, setCurrentUser] = useState<UserProfile>(DataProvider.getCurrentUser());
-  const [users] = useState<UserProfile[]>(DataProvider.getUsers());
+  const [currentUser, setCurrentUser] = useState<UserProfile>(() => DataProvider.getCurrentUser());
+  const [users] = useState<UserProfile[]>(() => DataProvider.getUsers());
   const [currentTab, setCurrentTab] = useState<NavTab>("home");
 
   // Navigation inside Count flow
@@ -43,7 +46,10 @@ export default function MobileApp() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [counts, setCounts] = useState<StockCount[]>([]);
   const [adjustments, setAdjustments] = useState<StockAdjustment[]>([]);
+
+  // Fetch States (Loading / Error / Empty)
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Admin Modals
   const [adjustingItem, setAdjustingItem] = useState<InventoryItem | null>(null);
@@ -51,8 +57,20 @@ export default function MobileApp() {
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [roundModalOpen, setRoundModalOpen] = useState(false);
 
-  // 2. Fetch All Data
+  // 2. Fetch All Data with Guaranteed Timeout & Error Handling
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMsg(null);
+
+    // Safety timeout: 7 seconds max to prevent infinite skeleton
+    if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
+    fetchTimeoutRef.current = setTimeout(() => {
+      setIsLoading(false);
+      setErrorMsg((prev) => (prev ? prev : "การเชื่อมต่อใช้เวลานานเกินไป กรุณาแตะปุ่มเพื่อลองใหม่"));
+    }, 7000);
+
     try {
       const [fetchedPlants, fetchedRounds, fetchedItems, fetchedCounts, fetchedAdjustments] =
         await Promise.all([
@@ -63,6 +81,8 @@ export default function MobileApp() {
           DataProvider.getAdjustments(),
         ]);
 
+      if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
+
       setPlants(fetchedPlants);
       setRounds(fetchedRounds);
       setItems(fetchedItems);
@@ -70,30 +90,38 @@ export default function MobileApp() {
       setAdjustments(fetchedAdjustments);
 
       const active = fetchedRounds.find((r) => r.status === "OPEN") || fetchedRounds[0];
-      setActiveRound(active);
+      setActiveRound(active || null);
 
       if (active) {
         const prog = await DataProvider.getRoundProgress(active.id);
         setProgress(prog);
       }
+
+      setIsLoading(false);
     } catch (err) {
       console.error("Refresh data error:", err);
-    } finally {
+      if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
+      setErrorMsg("ไม่สามารถโหลดข้อมูลจากระบบได้ กรุณาลองใหม่อีกครั้ง");
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
     refreshData();
+    return () => {
+      if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
+    };
   }, [refreshData]);
 
-  // 3. Setup Multi-Staff Realtime Subscription (Requirement #29)
+  // 3. Multi-Staff Realtime Subscription
   useEffect(() => {
     const unsubscribe = DataProvider.onStockUpdate((event) => {
-      console.log("Realtime event received:", event);
-
       if (event.type === "COUNT_SUBMITTED") {
-        const payload = event.payload as { item_id: string; counted_quantity: number; user_name: string };
+        const payload = event.payload as {
+          item_id: string;
+          counted_quantity: number;
+          user_name: string;
+        };
         toast.info(
           `⚡ Realtime: คุณ${payload.user_name || "พนักงาน"} เพิ่งส่งยอดนับใหม่`,
           { duration: 4000 }
@@ -118,30 +146,30 @@ export default function MobileApp() {
     };
   }, [refreshData]);
 
-  // Handle User switch
+  // Handle User Switch
   const handleSelectUser = (user: UserProfile) => {
     setCurrentUser(user);
     DataProvider.setCurrentUser(user);
     toast.success(`สลับเข้าใช้งานในชื่อ: ${user.full_name} (${user.role})`);
   };
 
-  // Plant items for counting
+  // Items for selected plant
   const currentPlantItems = React.useMemo(() => {
     if (!selectedPlantId) return [];
     return items.filter((i) => i.plant_id === selectedPlantId);
   }, [items, selectedPlantId]);
 
-  // Handle Submit count
+  // Handle Submit count (with multiple storage locations)
   const handleSubmitCount = async (params: {
     round_id: string;
     item_id: string;
     plant_id: number;
     counted_quantity: number;
     notes?: string;
+    locations?: StockCountLocation[];
   }) => {
     const result = await DataProvider.submitCount(params);
     await refreshData();
-    // Update local item
     setItems((prev) =>
       prev.map((i) =>
         i.id === params.item_id
@@ -157,16 +185,16 @@ export default function MobileApp() {
     return result;
   };
 
-  // Handle Save draft
+  // Handle Save draft (with multiple storage locations)
   const handleSaveDraft = async (params: {
     round_id: string;
     item_id: string;
     plant_id: number;
     counted_quantity: number;
     notes?: string;
+    locations?: StockCountLocation[];
   }) => {
     const draft = await DataProvider.saveDraftCount(params);
-    await refreshData();
     return draft;
   };
 
@@ -190,7 +218,7 @@ export default function MobileApp() {
   // Handle Toggle Item Status
   const handleToggleItemStatus = async (item: InventoryItem) => {
     const nextStatus = item.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    await DataProvider.saveItem({ ...item, status: nextStatus });
+    await DataProvider.saveItem({ ...item, status: nextStatus, is_active: nextStatus === "ACTIVE" });
     await refreshData();
     toast.info(`เปลี่ยนสถานะ ${item.sku} เป็น ${nextStatus}`);
   };
@@ -219,14 +247,14 @@ export default function MobileApp() {
     }
   };
 
-  // Calculate Title & Subtitle for Top App Bar
+  // Top App Bar Titles
   let topTitle = "CONCRETE STOCK";
   let topSubtitle: string | undefined = undefined;
   let showBackButton = false;
 
   if (selectedItem) {
-    topTitle = `${selectedItem.sku} • นับสินค้า`;
-    topSubtitle = `โรง ${selectedItem.plant_id} (${selectedItem.zone})`;
+    topTitle = "นับแยกตามจุดวาง";
+    topSubtitle = `${selectedItem.sku} • โรง ${selectedItem.plant_id}`;
     showBackButton = true;
   } else if (selectedPlantId) {
     const p = plants.find((x) => x.id === selectedPlantId);
@@ -234,7 +262,7 @@ export default function MobileApp() {
     topSubtitle = activeRound?.title;
     showBackButton = true;
   } else if (currentTab === "count") {
-    topTitle = "เลือกรอบและโรงงาน";
+    topTitle = "รอบนับสินค้า";
     topSubtitle = activeRound?.title;
     showBackButton = false;
   } else if (currentTab === "stock") {
@@ -251,21 +279,72 @@ export default function MobileApp() {
     showBackButton = false;
   }
 
-  // Uncounted badge for bottom nav
   const uncountedBadge = progress?.uncounted_skus ?? 0;
 
-  if (isLoading || !activeRound) {
+  // 4. Loading UX Requirement: Never hang indefinitely in Skeleton!
+  if (isLoading && !plants.length && !errorMsg) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-3xl p-6 space-y-4">
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-32 w-full rounded-2xl" />
-          <Skeleton className="h-20 w-full rounded-2xl" />
-          <Skeleton className="h-20 w-full rounded-2xl" />
+        <div className="w-full max-w-md bg-white rounded-3xl p-6 space-y-4 shadow-2xl">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-8 w-40 rounded-xl" />
+            <Skeleton className="h-8 w-16 rounded-xl" />
+          </div>
+          <Skeleton className="h-28 w-full rounded-2xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <div className="text-center pt-2">
+            <span className="text-xs text-slate-400 font-semibold animate-pulse">
+              กำลังเชื่อมต่อและโหลดข้อมูลสต๊อก...
+            </span>
+          </div>
         </div>
       </div>
     );
   }
+
+  // 5. Error State with Retry Button
+  if (errorMsg && !plants.length) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white rounded-3xl p-6 text-center space-y-4 shadow-2xl border-2 border-rose-200">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+            <AlertTriangle className="h-8 w-8 stroke-[2.5]" />
+          </div>
+          <h3 className="text-lg font-black text-slate-900">
+            ไม่สามารถโหลดข้อมูลได้
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            {errorMsg}
+          </p>
+          <Button
+            onClick={() => refreshData()}
+            size="lg"
+            className="w-full h-13 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span>ลองใหม่</span>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback active round if database empty
+  const effectiveRound =
+    activeRound ||
+    rounds[0] || {
+      id: "round-default",
+      name: "รอบนับปัจจุบัน",
+      title: "รอบนับปัจจุบัน",
+      type: "MONTHLY",
+      count_type: "MONTHLY",
+      start_date: "2026-10-01",
+      end_date: "2026-10-31",
+      status: "OPEN",
+      plant_ids: [1, 2, 3, 4],
+      created_at: new Date().toISOString(),
+    };
 
   return (
     <MobileShell
@@ -281,13 +360,13 @@ export default function MobileApp() {
       users={users}
       onSelectUser={handleSelectUser}
       uncountedCount={uncountedBadge}
-      hideNav={Boolean(selectedItem)} // Full immersion when counting!
+      hideNav={Boolean(selectedItem)}
     >
       {/* 1. Home Tab */}
       {currentTab === "home" && (
         <HomeView
           currentUser={currentUser}
-          activeRound={activeRound}
+          activeRound={effectiveRound}
           progress={progress}
           plants={plants}
           totalItemCount={items.length}
@@ -309,7 +388,7 @@ export default function MobileApp() {
           {selectedItem ? (
             <ItemCountView
               item={selectedItem}
-              round={activeRound}
+              round={effectiveRound}
               currentUser={currentUser}
               plantItems={currentPlantItems}
               onBack={() => setSelectedItem(null)}
@@ -320,7 +399,7 @@ export default function MobileApp() {
             />
           ) : (
             <CountRoundView
-              round={activeRound}
+              round={effectiveRound}
               progress={progress}
               plants={plants}
               items={items}
@@ -358,13 +437,13 @@ export default function MobileApp() {
         />
       )}
 
-      {/* 5. Profile / Admin Tab */}
+      {/* 5. Profile Tab */}
       {currentTab === "profile" && (
         <ProfileView
           currentUser={currentUser}
           users={users}
           onOpenUserSwitcher={() => {}}
-          activeRound={activeRound}
+          activeRound={effectiveRound}
           progress={progress}
           items={items}
           onOpenAddProduct={() => {

@@ -74,7 +74,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
         item.sku.toLowerCase().includes(q) ||
         item.name.toLowerCase().includes(q) ||
         item.size.toLowerCase().includes(q) ||
-        item.zone.toLowerCase().includes(q);
+        (item.zone && item.zone.toLowerCase().includes(q));
 
       if (!matchesSearch) return false;
 

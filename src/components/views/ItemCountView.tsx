@@ -1,32 +1,51 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   InventoryItem,
   CountRound,
   StockCount,
   UserProfile,
+  StockCountLocation,
 } from "@/lib/types";
-import { NumberStepper } from "@/components/count/NumberStepper";
-import { DifferenceBadge } from "@/components/count/DifferenceBadge";
-import { ConfirmCountSheet } from "@/components/count/ConfirmCountSheet";
+import { LocationCountCard } from "@/components/count/LocationCountCard";
+import { AddLocationSheet } from "@/components/count/AddLocationSheet";
 import { CountSuccessModal } from "@/components/count/CountSuccessModal";
 import { HistoryTimeline, TimelineEntry } from "@/components/count/HistoryTimeline";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { DifferenceBadge } from "@/components/count/DifferenceBadge";
 import { formatNumber, formatDateTime } from "@/lib/utils";
+import { DataProvider } from "@/lib/data-provider";
 import {
+  ScanLine,
+  ChevronLeft,
+  Info,
   MapPin,
-  Clock,
-  User,
+  Database,
+  ClipboardList,
+  FileEdit,
+  Plus,
   Save,
   CheckCircle2,
-  RefreshCw,
+  AlertCircle,
   History,
-  Layers,
   ChevronDown,
   ChevronUp,
+  Ruler,
+  Package,
 } from "lucide-react";
 import { toast } from "sonner";
+
+interface LocationState {
+  id?: string;
+  storage_location_id?: string;
+  lock_code: string;
+  row_code: string;
+  expected_quantity: number;
+  counted_quantity: number;
+  isNew?: boolean;
+}
 
 interface ItemCountViewProps {
   item: InventoryItem;
@@ -40,6 +59,7 @@ interface ItemCountViewProps {
     plant_id: number;
     counted_quantity: number;
     notes?: string;
+    locations?: StockCountLocation[];
   }) => Promise<StockCount>;
   onSaveDraft: (params: {
     round_id: string;
@@ -47,6 +67,7 @@ interface ItemCountViewProps {
     plant_id: number;
     counted_quantity: number;
     notes?: string;
+    locations?: StockCountLocation[];
   }) => Promise<StockCount>;
   fetchItemHistory: (itemId: string) => Promise<TimelineEntry[]>;
   onSelectNextItem: (nextItem: InventoryItem) => void;
@@ -63,29 +84,119 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
   fetchItemHistory,
   onSelectNextItem,
 }) => {
-  // Stepper quantity starts with current stock or 0
-  const [countedQty, setCountedQty] = useState<number>(item.current_quantity);
+  // 1. Initialize locations from Draft or Item's known locations
+  const [locations, setLocations] = useState<LocationState[]>([]);
   const [notes, setNotes] = useState<string>("");
+  const [addLocationOpen, setAddLocationOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [historyEntries, setHistoryEntries] = useState<TimelineEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Sync state if item changes
+  // Setup initial locations when item or round changes
   useEffect(() => {
-    setCountedQty(item.current_quantity);
-    setNotes("");
+    // 1. Check for draft first
+    const draft = DataProvider.getItemDraft(item.id, round.id);
+
+    if (draft && draft.locations && draft.locations.length > 0) {
+      setLocations(
+        draft.locations.map((loc) => ({
+          storage_location_id: loc.storage_location_id,
+          lock_code: loc.lock_code,
+          row_code: loc.row_code,
+          expected_quantity: loc.previous_quantity,
+          counted_quantity: loc.counted_quantity,
+        }))
+      );
+      setNotes(draft.notes || "");
+      toast.info("โหลดข้อมูลจากแบบร่าง (Draft) ที่บันทึกไว้");
+    } else if (item.locations && item.locations.length > 0) {
+      // 2. Use item's known storage positions
+      setLocations(
+        item.locations.map((loc) => ({
+          id: loc.id,
+          storage_location_id: loc.storage_location_id,
+          lock_code: loc.lock_code,
+          row_code: loc.row_code,
+          expected_quantity: loc.expected_quantity,
+          counted_quantity: loc.expected_quantity, // default to expected for fast one-tap verification!
+        }))
+      );
+      setNotes("");
+    } else {
+      // Fallback single default position
+      setLocations([
+        {
+          lock_code: "A1",
+          row_code: "1",
+          expected_quantity: item.current_quantity,
+          counted_quantity: item.current_quantity,
+        },
+      ]);
+      setNotes("");
+    }
+
     setConfirmOpen(false);
     setSuccessOpen(false);
 
     // Fetch history
     fetchItemHistory(item.id).then(setHistoryEntries);
-  }, [item.id, item.current_quantity, fetchItemHistory]);
+  }, [item.id, item.current_quantity, item.locations, round.id, fetchItemHistory]);
 
-  const previousQuantity = item.current_quantity;
-  const difference = countedQty - previousQuantity;
-  const isRecount = Boolean(item.last_counted_at);
+  // 2. Computed Summaries per Mockup
+  const totalExpected = useMemo(() => {
+    return locations.reduce((sum, loc) => sum + loc.expected_quantity, 0);
+  }, [locations]);
+
+  const totalCounted = useMemo(() => {
+    return locations.reduce((sum, loc) => sum + loc.counted_quantity, 0);
+  }, [locations]);
+
+  const totalDifference = totalCounted - totalExpected;
+
+  // Remaining to fill (mockup: คงเหลือที่ยังไม่กรอก)
+  const remainingUncounted = Math.max(0, totalExpected - totalCounted);
+
+  // Handle location quantity change
+  const handleLocationCountChange = (index: number, val: number) => {
+    setLocations((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], counted_quantity: val };
+      return next;
+    });
+  };
+
+  // Add new location dynamically
+  const handleAddNewLocation = (params: {
+    plant_id: number;
+    lock_code: string;
+    row_code: string;
+    quantity: number;
+  }) => {
+    setLocations((prev) => [
+      ...prev,
+      {
+        lock_code: params.lock_code,
+        row_code: params.row_code,
+        expected_quantity: 0,
+        counted_quantity: params.quantity,
+        isNew: true,
+      },
+    ]);
+  };
+
+  // Format locations for submission
+  const mappedCountLocations: StockCountLocation[] = useMemo(() => {
+    return locations.map((loc) => ({
+      storage_location_id: loc.storage_location_id,
+      lock_code: loc.lock_code,
+      row_code: loc.row_code,
+      previous_quantity: loc.expected_quantity,
+      counted_quantity: loc.counted_quantity,
+      difference: loc.counted_quantity - loc.expected_quantity,
+    }));
+  }, [locations]);
 
   // Save Draft
   const handleSaveDraft = async () => {
@@ -94,10 +205,11 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
         round_id: round.id,
         item_id: item.id,
         plant_id: item.plant_id,
-        counted_quantity: countedQty,
+        counted_quantity: totalCounted,
         notes: notes || undefined,
+        locations: mappedCountLocations,
       });
-      toast.success("บันทึก Draft แล้ว สามารถกลับมาแก้ไขได้ก่อนยืนยันยอด");
+      toast.success("บันทึก Draft แล้ว สามารถกลับมานับต่อภายหลังได้");
     } catch {
       toast.error("เกิดข้อผิดพลาดในการบันทึก Draft");
     }
@@ -111,14 +223,14 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
         round_id: round.id,
         item_id: item.id,
         plant_id: item.plant_id,
-        counted_quantity: countedQty,
+        counted_quantity: totalCounted,
         notes: notes || undefined,
+        locations: mappedCountLocations,
       });
 
       setConfirmOpen(false);
       setSuccessOpen(true);
 
-      // Refresh history
       const freshHistory = await fetchItemHistory(item.id);
       setHistoryEntries(freshHistory);
     } catch {
@@ -128,115 +240,226 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
     }
   };
 
-  // Find next sequential or uncounted item in same plant
-  const nextItem = React.useMemo(() => {
+  // Next Item Navigation
+  const nextItem = useMemo(() => {
     const currentIndex = plantItems.findIndex((i) => i.id === item.id);
     if (currentIndex !== -1 && currentIndex + 1 < plantItems.length) {
       return plantItems[currentIndex + 1];
     }
-    // Loop around to first
     return plantItems[0] || null;
   }, [plantItems, item.id]);
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-300 pb-16">
-      {/* 1. Recount Banner (Requirement #26) */}
-      {isRecount && (
-        <div className="rounded-2xl bg-amber-50 border border-amber-200/90 p-3 flex items-start gap-2.5 text-amber-900 text-xs">
-          <RefreshCw className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-extrabold block">
-              สินค้านี้เคยนับแล้ว (ระบบอนุญาตให้นับซ้ำได้):
-            </span>
-            <p className="mt-0.5 text-amber-800">
-              นับล่าสุด: <span className="font-bold">{formatNumber(item.current_quantity)} {item.unit}</span>{" "}
-              ({formatDateTime(item.last_counted_at)}) โดย{" "}
-              <span className="font-bold">{item.last_counted_by_name || "พนักงาน"}</span>
-            </p>
-          </div>
-        </div>
-      )}
+    <div className="space-y-4 animate-in fade-in duration-300 pb-20">
+      {/* 1. Header Bar: '< นับแยกตามจุดวาง' with Barcode Scanner Icon */}
+      <div className="flex items-center justify-between px-1">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-sm font-bold text-slate-700 hover:text-blue-600 transition-colors touch-press"
+        >
+          <ChevronLeft className="h-6 w-6 stroke-[2.5]" />
+          <span className="text-lg font-black text-slate-900">นับแยกตามจุดวาง</span>
+        </button>
 
-      {/* 2. Product Header Information per Requirement #21, #22 */}
-      <div className="rounded-3xl bg-white p-4.5 border-2 border-slate-200/90 shadow-sm">
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <span className="font-mono text-sm font-black tracking-wider px-2.5 py-0.5 rounded-lg bg-slate-900 text-white">
-            {item.sku}
-          </span>
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-            <MapPin className="h-3.5 w-3.5 text-slate-400" />
-            <span>โรง {item.plant_id} • {item.zone}</span>
-          </div>
-        </div>
-
-        <h2 className="text-xl font-black text-slate-900 leading-tight">
-          {item.name}
-        </h2>
-
-        {/* BOLD Prominent Size / Variant per Requirement #20 */}
-        <div className="mt-2 flex items-center gap-2">
-          <div className="rounded-xl bg-blue-600 px-3.5 py-1 text-white shadow-xs">
-            <span className="text-base font-black tracking-tight">{item.size}</span>
-          </div>
-          {item.variant && item.variant !== "-" && (
-            <span className="text-xs text-slate-600 font-semibold">{item.variant}</span>
-          )}
-        </div>
+        <button
+          onClick={() => toast.info("กล้องสแกนบาร์โค้ด / QR Code พร้อมใช้งาน")}
+          className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition-all touch-press border border-slate-200"
+          aria-label="สแกนบาร์โค้ด"
+        >
+          <ScanLine className="h-5 w-5 text-slate-700" />
+        </button>
       </div>
 
-      {/* 3. Live Count Card (Requirement #22, #23) */}
-      <div className="rounded-3xl bg-white p-5 border-2 border-blue-500/80 shadow-md">
-        {/* Previous Stock vs Live Difference Header */}
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
-          <div>
-            <span className="text-xs font-semibold text-slate-500 block">
-              Stock ล่าสุดในระบบ
+      {/* 2. Product Hero Card matching Mockup */}
+      <div className="rounded-3xl border-2 border-slate-200/90 bg-white p-4 shadow-sm">
+        <div className="flex items-start gap-3.5">
+          {/* Concrete Thumbnail */}
+          <div className="relative h-20 w-20 sm:h-24 sm:w-24 shrink-0 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-xs flex items-center justify-center">
+            {/* Realistic stylized concrete posts graphic */}
+            <div className="h-full w-full bg-linear-to-br from-slate-200 via-slate-300 to-slate-400 flex flex-col justify-between p-1.5">
+              <div className="h-2 w-full bg-slate-400 rounded-sm" />
+              <div className="h-2 w-full bg-slate-400 rounded-sm" />
+              <div className="h-2 w-full bg-slate-400 rounded-sm" />
+              <div className="h-2 w-full bg-slate-400 rounded-sm" />
+            </div>
+            <span className="absolute bottom-1 right-1 text-[9px] font-black px-1 rounded bg-black/60 text-white">
+              {item.unit}
             </span>
-            <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-2xl font-black text-slate-800">
-                {formatNumber(previousQuantity)}
+          </div>
+
+          {/* Details */}
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-bold text-slate-400 block font-mono">
+              SKU: {item.sku}
+            </span>
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 leading-tight truncate">
+              {item.name}
+            </h2>
+
+            {/* Spec Chips */}
+            <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 rounded-xl bg-blue-50 border border-blue-200/90 px-2.5 py-0.5 text-xs font-black text-blue-700">
+                <Ruler className="h-3 w-3 text-blue-600" />
+                <span>{item.height ? `สูง ${item.height}` : item.size}</span>
               </span>
-              <span className="text-xs font-bold text-slate-500">{item.unit}</span>
-            </div>
-          </div>
 
-          <div className="text-right">
-            <span className="text-xs font-semibold text-slate-500 block">
-              ผลต่างการนับ
-            </span>
-            <div className="mt-1 flex justify-end">
-              <DifferenceBadge diff={difference} size="md" />
+              {item.width && (
+                <span className="inline-flex items-center gap-1 rounded-xl bg-slate-100 border border-slate-200 px-2 py-0.5 text-xs font-bold text-slate-700">
+                  <Package className="h-3 w-3 text-slate-500" />
+                  <span>หน้า {item.width}</span>
+                </span>
+              )}
+            </div>
+
+            {/* Plant */}
+            <div className="mt-1.5 flex items-center gap-1 text-xs font-bold text-slate-600">
+              <MapPin className="h-3.5 w-3.5 text-slate-400" />
+              <span>โรง {item.plant_id}</span>
             </div>
           </div>
         </div>
 
-        {/* Stepper Input with Giant Numbers and Batch Increment Buttons */}
-        <div className="mb-2">
-          <label className="text-xs font-extrabold text-slate-700 block text-center mb-2">
-            จำนวนที่นับได้จริง ({item.unit}) — แตะที่ตัวเลขเพื่อพิมพ์เองได้
-          </label>
-          <NumberStepper
-            value={countedQty}
-            onChange={setCountedQty}
-            unit={item.unit}
-            initialValue={previousQuantity}
-            onReset={() => setCountedQty(previousQuantity)}
-          />
-        </div>
-
-        {/* Optional quick note */}
-        <div className="mt-4 pt-3 border-t border-slate-100">
-          <input
-            type="text"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="หมายเหตุเพิ่มเติม (ถ้ามี เช่น วางซ้อน 2 กอง)..."
-            className="w-full text-xs p-2.5 rounded-xl border border-slate-200 text-slate-700 placeholder:text-slate-400 bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500"
-          />
+        {/* Warning / Instruction Banner */}
+        <div className="mt-3.5 rounded-2xl bg-blue-50/70 border border-blue-100 p-2.5 flex items-start gap-2 text-[11px] text-blue-800">
+          <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+          <p className="leading-snug font-medium">
+            สินค้านี้อาจเก็บในหลายล็อค / หลายแถว กรุณาแยกนับตามจุดวางจริง
+          </p>
         </div>
       </div>
 
-      {/* 4. History Collapsible per Requirement #27 */}
+      {/* 3. Three Stat Badges (Mockup: สต๊อกล่าสุด, นับแล้ว, คงเหลือที่ยังไม่กรอก) */}
+      <div className="grid grid-cols-3 gap-2 text-center">
+        {/* สต๊อกล่าสุด */}
+        <div className="rounded-2xl bg-white p-3 border border-slate-200/90 shadow-xs">
+          <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-500 mb-0.5">
+            <Database className="h-3.5 w-3.5 text-slate-400" />
+            <span>สต๊อกล่าสุด</span>
+          </div>
+          <div className="flex items-baseline justify-center gap-1">
+            <span className="text-xl font-black text-slate-900">
+              {formatNumber(totalExpected)}
+            </span>
+            <span className="text-[11px] font-bold text-slate-500">{item.unit}</span>
+          </div>
+        </div>
+
+        {/* นับแล้ว */}
+        <div className="rounded-2xl bg-white p-3 border border-blue-200 bg-blue-50/20 shadow-xs">
+          <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-blue-600 mb-0.5">
+            <ClipboardList className="h-3.5 w-3.5 text-blue-600" />
+            <span>นับแล้ว</span>
+          </div>
+          <div className="flex items-baseline justify-center gap-1">
+            <span className="text-xl font-black text-blue-600">
+              {formatNumber(totalCounted)}
+            </span>
+            <span className="text-[11px] font-bold text-blue-600">{item.unit}</span>
+          </div>
+        </div>
+
+        {/* คงเหลือที่ยังไม่กรอก */}
+        <div className="rounded-2xl bg-white p-3 border border-slate-200/90 shadow-xs">
+          <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-500 mb-0.5">
+            <FileEdit className="h-3.5 w-3.5 text-slate-400" />
+            <span>คงเหลือที่ยังไม่กรอก</span>
+          </div>
+          <div className="flex items-baseline justify-center gap-1">
+            <span className="text-xl font-black text-slate-700">
+              {formatNumber(remainingUncounted)}
+            </span>
+            <span className="text-[11px] font-bold text-slate-500">{item.unit}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Section: จุดวางสินค้าทั้งหมด */}
+      <div>
+        <div className="mb-2.5 px-1">
+          <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+            <MapPin className="h-4 w-4 text-blue-600" />
+            <span>จุดวางสินค้าทั้งหมด</span>
+          </h3>
+          <p className="text-[11px] text-slate-500">
+            แยกนับตามล็อคและแถว เพื่อรวมยอดจากหลายจุดวาง
+          </p>
+        </div>
+
+        {/* List of storage positions */}
+        <div className="space-y-2.5">
+          {locations.map((loc, idx) => (
+            <LocationCountCard
+              key={`${loc.lock_code}-${loc.row_code}-${idx}`}
+              lockCode={loc.lock_code}
+              rowCode={loc.row_code}
+              expectedQuantity={loc.expected_quantity}
+              countedQuantity={loc.counted_quantity}
+              unit={item.unit}
+              onChange={(val) => handleLocationCountChange(idx, val)}
+              isNew={loc.isNew}
+            />
+          ))}
+        </div>
+
+        {/* [+ เพิ่มจุดวาง / ล็อค / แถว] Button */}
+        <button
+          type="button"
+          onClick={() => setAddLocationOpen(true)}
+          className="w-full mt-3 h-13 rounded-2xl border-2 border-dashed border-blue-400 bg-blue-50/40 hover:bg-blue-50 active:bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center gap-2 transition-all touch-press shadow-xs"
+        >
+          <Plus className="h-5 w-5 stroke-[2.5]" />
+          <span>เพิ่มจุดวาง / ล็อค / แถว</span>
+        </button>
+      </div>
+
+      {/* 5. Summary Row matching Mockup */}
+      <div className="rounded-3xl bg-slate-50 border-2 border-slate-200/90 p-4">
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <span className="text-[11px] font-bold text-slate-400 block">
+              รวมในระบบ
+            </span>
+            <span className="text-2xl font-black text-slate-800 mt-0.5 block">
+              {formatNumber(totalExpected)}
+            </span>
+          </div>
+
+          <div className="border-x border-slate-200">
+            <span className="text-[11px] font-black text-blue-600 block">
+              รวมที่นับได้
+            </span>
+            <span className="text-2xl font-black text-blue-600 mt-0.5 block">
+              {formatNumber(totalCounted)}
+            </span>
+          </div>
+
+          <div>
+            <span className="text-[11px] font-bold text-slate-400 block">
+              ผลต่าง
+            </span>
+            <div className="mt-1 flex justify-center">
+              <DifferenceBadge diff={totalDifference} size="md" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 6. Notes Input matching Mockup */}
+      <div className="space-y-1">
+        <label className="text-xs font-bold text-slate-700 flex items-center gap-1 px-1">
+          <FileEdit className="h-3.5 w-3.5 text-slate-400" />
+          <span>หมายเหตุ (ถ้ามี)</span>
+        </label>
+        <input
+          type="text"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="เช่น วางกระจายหลายล็อค ผลิตคนละวัน..."
+          className="w-full h-12 px-4 rounded-2xl border-2 border-slate-200/90 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 shadow-xs"
+        />
+      </div>
+
+      {/* 7. History Timeline Collapsible */}
       <div className="rounded-3xl bg-white border border-slate-200/90 overflow-hidden shadow-xs">
         <button
           type="button"
@@ -245,7 +468,7 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
         >
           <div className="flex items-center gap-2">
             <History className="h-4 w-4 text-blue-600" />
-            <span>ประวัติการนับ SKU นี้ ({historyEntries.length} รายการ)</span>
+            <span>ประวัติการนับ SKU นี้ ({historyEntries.length} ครั้ง)</span>
           </div>
           {showHistory ? (
             <ChevronUp className="h-5 w-5 text-slate-400" />
@@ -261,16 +484,16 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
         )}
       </div>
 
-      {/* 5. Sticky Bottom Action Bar per Requirement #24 */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 mx-auto max-w-md md:max-w-lg bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 sm:px-4 safe-area-bottom shadow-xl flex items-center gap-2.5">
+      {/* 8. Sticky Bottom Actions matching Mockup */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 mx-auto max-w-md md:max-w-lg bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 sm:px-4 safe-area-bottom shadow-xl flex items-center gap-3">
         <Button
           type="button"
           variant="outline"
           size="lg"
           onClick={handleSaveDraft}
-          className="flex-1 h-14 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold flex items-center justify-center gap-2 touch-press"
+          className="flex-1 h-14 rounded-2xl border-2 border-slate-300 text-slate-800 font-black text-sm flex items-center justify-center gap-2 touch-press"
         >
-          <Save className="h-5 w-5 text-slate-500" />
+          <Save className="h-5 w-5 text-blue-600" />
           <span>บันทึก Draft</span>
         </Button>
 
@@ -282,25 +505,98 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
           className="flex-1 h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-base shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 touch-press"
         >
           <CheckCircle2 className="h-5 w-5 stroke-[2.5]" />
-          <span>ยืนยันยอด</span>
+          <span>ยืนยันยอดรวม</span>
         </Button>
       </div>
 
-      {/* Confirm Bottom Sheet */}
-      <ConfirmCountSheet
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        item={item}
-        countedQuantity={countedQty}
-        onConfirm={handleConfirmSubmit}
-        isSubmitting={isSubmitting}
+      {/* Add Location Sheet */}
+      <AddLocationSheet
+        open={addLocationOpen}
+        onOpenChange={setAddLocationOpen}
+        defaultPlantId={item.plant_id}
+        unit={item.unit}
+        onAddLocation={handleAddNewLocation}
       />
 
-      {/* Success Modal with [นับรายการถัดไป] & [กลับรายการสินค้า] */}
+      {/* Confirmation Bottom Sheet */}
+      <Sheet open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <SheetContent side="bottom" className="pb-8">
+          <SheetHeader className="text-center items-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 mb-2">
+              <CheckCircle2 className="h-8 w-8 stroke-[2.5]" />
+            </div>
+            <SheetTitle className="text-xl font-black text-slate-900">
+              ยืนยันยอดการนับรวม?
+            </SheetTitle>
+            <SheetDescription className="text-sm text-slate-500">
+              รวมยอดนับจาก {locations.length} จุดวาง ระบบจะบันทึก History ทันที
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="my-3 rounded-2xl bg-slate-50 border border-slate-200 p-3.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs font-black px-2 py-0.5 rounded bg-slate-900 text-white">
+                {item.sku}
+              </span>
+              <span className="text-xs font-extrabold text-blue-600">
+                {item.height ? `สูง ${item.height}` : item.size}
+              </span>
+            </div>
+            <h4 className="font-bold text-slate-900 text-sm">{item.name}</h4>
+
+            {/* Location breakdown items */}
+            <div className="pt-2 border-t border-slate-200 space-y-1.5 text-xs">
+              {locations.map((loc, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <span className="font-semibold text-slate-600">
+                    ล็อค {loc.lock_code} แถว {loc.row_code}
+                  </span>
+                  <span className="font-mono font-bold text-slate-900">
+                    {formatNumber(loc.counted_quantity)} {item.unit}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2 border-t border-slate-200 flex items-center justify-between font-black text-sm">
+              <span className="text-slate-700">ยอดรวมทั้งหมด</span>
+              <div className="flex items-center gap-2">
+                <span className="text-blue-600 text-base">
+                  {formatNumber(totalCounted)} {item.unit}
+                </span>
+                <DifferenceBadge diff={totalDifference} size="sm" />
+              </div>
+            </div>
+          </div>
+
+          <SheetFooter className="mt-4 flex-row gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmOpen(false)}
+              disabled={isSubmitting}
+              className="flex-1 h-13 rounded-2xl font-bold"
+            >
+              กลับไปแก้
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              onClick={handleConfirmSubmit}
+              disabled={isSubmitting}
+              className="flex-1 h-13 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-base shadow-lg shadow-blue-600/30"
+            >
+              {isSubmitting ? "กำลังส่งยอด..." : "ยืนยันยอด"}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {/* Success Modal */}
       <CountSuccessModal
         open={successOpen}
         item={item}
-        countedQuantity={countedQty}
+        countedQuantity={totalCounted}
         hasNextItem={Boolean(nextItem && nextItem.id !== item.id)}
         onNextItem={() => {
           setSuccessOpen(false);

@@ -60,8 +60,10 @@ export const RoundManagementModal: React.FC<RoundManagementModalProps> = ({
     try {
       setIsSubmitting(true);
       await onCreateRound({
+        name: title.trim(),
         title: title.trim(),
         type,
+        count_type: type,
         start_date: startDate,
         end_date: endDate,
         status: "OPEN",
