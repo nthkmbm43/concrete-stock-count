@@ -39,8 +39,18 @@ if (typeof window !== "undefined" && "BroadcastChannel" in window) {
   realtimeChannel = new BroadcastChannel("concrete_stock_realtime_channel");
 }
 
+const memoryStorage: Record<string, string> = {};
+
 function getStored<T>(key: string, defaultVal: T): T {
-  if (typeof window === "undefined") return defaultVal;
+  if (typeof window === "undefined") {
+    const val = memoryStorage[key];
+    if (!val) return defaultVal;
+    try {
+      return JSON.parse(val);
+    } catch {
+      return defaultVal;
+    }
+  }
   try {
     const val = localStorage.getItem(key);
     if (!val) return defaultVal;
@@ -51,7 +61,10 @@ function getStored<T>(key: string, defaultVal: T): T {
 }
 
 function setStored<T>(key: string, val: T): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    memoryStorage[key] = JSON.stringify(val);
+    return;
+  }
   try {
     localStorage.setItem(key, JSON.stringify(val));
   } catch (err) {

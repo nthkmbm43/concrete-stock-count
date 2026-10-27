@@ -357,15 +357,24 @@ A comprehensive 7-step data onboarding workflow engineered for warehouse data bu
 - **Database**: Neon Serverless PostgreSQL (`ep-fragrant-feather-at378ccb.c-9.us-east-1.aws.neon.tech`)
 
 ### Automated Test Suites
-Run all security, demo separation, and data import automated tests:
+Run all automated test suites covering all system requirements (196 / 196 passed, 100%):
 ```bash
-# Run complete test suite (52 Security & Demo Separation + 51 Import tests = 103 passed)
+# Run all 5 test suites (196 tests passed)
 npm test
 
-# Run security hardening tests only (Session Revocation, RBAC, 401/403, Zero Spoofing, Demo Mode Guard)
+# 1. Stock Count & Multi-Location (45 tests) - Multi-location, Add/Edit/Delete, Per-location Notes, Variance
+npm run test:stock
+
+# 2. Export & Document Generation (20 tests) - ExcelJS, PDF generator, A4 Landscape, Report Metrics
+npm run test:export
+
+# 3. Branding & Assets Integrity (35 tests) - KCON profile, Logo, Favicon ICO, App icons, PWA Manifest
+npm run test:branding
+
+# 4. Security & Demo Separation (45 tests) - Session Revocation, RBAC, 401/403, Zero Spoofing, Demo Mode Guard
 npm run test:security
 
-# Run data import & branding tests only (Excel, CSV, Normalization, KCON)
+# 5. Data Import Center (51 tests) - Excel, CSV, Normalization, Formula injection, Multi-location aggregation
 npm run test:import
 ```
 
