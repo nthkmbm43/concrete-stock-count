@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { UserProfile } from "@/lib/types";
 import { DataProvider } from "@/lib/data-provider";
-import { getOptionalUser } from "@/lib/auth/server";
+import { getOptionalUser, requireAdmin } from "@/lib/auth/server";
 import { db, schema, isDatabaseConfigured } from "@/db";
 import { eq } from "drizzle-orm";
 
@@ -21,6 +21,7 @@ export const getCurrentUser = cache(async (): Promise<UserProfile | null> => {
 });
 
 export const getUserList = cache(async (): Promise<UserProfile[]> => {
+  await requireAdmin();
   if (isDatabaseConfigured && db) {
     try {
       const rows = await db

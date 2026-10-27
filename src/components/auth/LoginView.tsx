@@ -182,7 +182,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           </Button>
         </form>
 
-        {/* Quick Fill / Credentials Info Card */}
+        {/* Quick Fill / Credentials Info Card — only in DEMO mode */}
+        {process.env.NEXT_PUBLIC_DEMO_MODE === "true" && (
         <div className="pt-4 border-t border-slate-200/80 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -247,6 +248,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
             </button>
           </div>
         </div>
+        )}
 
         {/* Footer info */}
         <div className="text-center pt-2">

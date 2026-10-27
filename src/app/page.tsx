@@ -5,30 +5,46 @@ import {
   getCurrentRound,
   getRoundList,
   getRoundProgress,
-  getStockCounts,
-  getAdjustments,
   getCurrentUser,
   getUserList,
 } from "@/db/queries";
 import { DataProvider } from "@/lib/data-provider";
+import { getServerSession } from "@/lib/auth/server";
 
-/**
- * 15. INITIAL PAGE LOAD (SSR / Server Component)
- * Request Page -> Server Query -> Complete HTML -> Browser Render -> Realtime Subscription Take Over
- * 16. Zero full-page skeleton on initial load!
- * 30. Parallel execution of independent queries!
- */
 export const instant = false;
 
 export default async function Page() {
   await connection();
+
+  // ───── Auth gate ─────
+  // Check session BEFORE any data queries.
+  // If not logged in, return a minimal shell — only what the Login page needs.
+  const session = await getServerSession();
+  if (!session || !session.user) {
+    // No session: return empty initial data — LoginView will render
+    return (
+      <MobileAppClient
+        initialData={{
+          plants: await DataProvider.getPlants(),
+          activeRound: null,
+          rounds: [],
+          progress: null,
+          items: [],
+          counts: [],
+          adjustments: [],
+          currentUser: null,
+          users: [],
+        }}
+      />
+    );
+  }
+
+  // ───── Authenticated: fetch data in parallel ─────
   const [
     plants,
     activeRound,
     rounds,
     items,
-    counts,
-    adjustments,
     currentUser,
     users,
   ] = await Promise.all([
@@ -36,8 +52,6 @@ export default async function Page() {
     getCurrentRound(),
     getRoundList(),
     getProductList(),
-    getStockCounts(),
-    getAdjustments(),
     getCurrentUser(),
     getUserList(),
   ]);
@@ -55,6 +69,8 @@ export default async function Page() {
     progress = await getRoundProgress(effectiveActiveRound.id);
   }
 
+  // counts and adjustments are loaded lazily on the client when tabs are opened
+  // Do NOT load them on initial SSR to avoid the "query bottleneck on page open"
   return (
     <MobileAppClient
       initialData={{
@@ -63,8 +79,8 @@ export default async function Page() {
         rounds: effectiveRounds,
         progress,
         items,
-        counts,
-        adjustments,
+        counts: [],
+        adjustments: [],
         currentUser,
         users,
       }}

@@ -3,9 +3,11 @@ import { db, schema, isDatabaseConfigured } from "@/db";
 import { eq, desc, and } from "drizzle-orm";
 import { StockCount, StockAdjustment, StockCountLocation } from "@/lib/types";
 import { DataProvider } from "@/lib/data-provider";
+import { requireStaffOrAdmin } from "@/lib/auth/server";
 
 export const getStockCounts = cache(
   async (roundId?: string, limit = 100): Promise<StockCount[]> => {
+    await requireStaffOrAdmin();
     if (!isDatabaseConfigured || !db) {
       return DataProvider.getStockCounts(roundId);
     }
@@ -119,6 +121,7 @@ export const getItemCountHistory = cache(
 
 export const getAdjustments = cache(
   async (limit = 100): Promise<StockAdjustment[]> => {
+    await requireStaffOrAdmin();
     if (!isDatabaseConfigured || !db) {
       return DataProvider.getAdjustments();
     }
