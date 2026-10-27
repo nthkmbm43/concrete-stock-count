@@ -12,13 +12,15 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "test:stock": "tsx test/stock-count-test.ts",
-    "test:export": "tsx test/export-test.ts",
-    "test:branding": "tsx test/branding-assets-test.ts",
-    "test:security": "tsx test/security-test.ts",
-    "test:import": "tsx test/import-test.ts",
-    "test:qr": "tsx test/qr-barcode-test.ts",
-    "test": "tsx test/stock-count-test.ts && tsx test/export-test.ts && tsx test/branding-assets-test.ts && tsx test/security-test.ts && tsx test/import-test.ts && tsx test/qr-barcode-test.ts"
+    "test:stock": "tsx --env-file=.env.local test/stock-count-test.ts",
+    "test:export": "tsx --env-file=.env.local test/export-test.ts",
+    "test:branding": "tsx --env-file=.env.local test/branding-assets-test.ts",
+    "test:security": "tsx --env-file=.env.local test/security-test.ts",
+    "test:dal": "tsx --env-file=.env.local test/dal-auth-guard-test.ts",
+    "test:import": "tsx --env-file=.env.local test/import-test.ts",
+    "test:qr": "tsx --env-file=.env.local test/qr-barcode-test.ts",
+    "test:e2e": "tsx --env-file=.env.local test/production-e2e-test.ts",
+    "test": "tsx --env-file=.env.local test/stock-count-test.ts && tsx --env-file=.env.local test/export-test.ts && tsx --env-file=.env.local test/branding-assets-test.ts && tsx --env-file=.env.local test/dal-auth-guard-test.ts && tsx --env-file=.env.local test/security-test.ts && tsx --env-file=.env.local test/import-test.ts && tsx --env-file=.env.local test/qr-barcode-test.ts && tsx --env-file=.env.local test/production-e2e-test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.0",
