@@ -28,12 +28,14 @@ import {
   FileCode,
   Building2,
   FileSpreadsheet,
+  LogOut,
 } from "lucide-react";
 
 interface ProfileViewProps {
   currentUser: UserProfile;
   users: UserProfile[];
   onOpenUserSwitcher: () => void;
+  onLogout?: () => void;
   activeRound: CountRound;
   progress: RoundProgress | null;
   items: InventoryItem[];
@@ -47,6 +49,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   currentUser,
   users,
   onOpenUserSwitcher,
+  onLogout,
   activeRound,
   progress,
   items,
@@ -94,19 +97,32 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
         </div>
 
-        {/* Quick User Switcher Trigger Button */}
-        <div className="mt-4 pt-3.5 border-t border-slate-100">
-          <Button
-            onClick={onOpenUserSwitcher}
-            variant="outline"
-            className="w-full h-12 rounded-2xl border-slate-200 text-slate-800 font-bold flex items-center justify-between px-4 touch-press"
-          >
-            <div className="flex items-center gap-2 text-xs">
-              <Users className="h-4 w-4 text-blue-600" />
-              <span>สลับผู้ใช้งาน (สมชาย / วิชัย / นิตยา / สมพร / แอดมิน)</span>
-            </div>
-            <ChevronRight className="h-4 w-4 text-slate-400" />
-          </Button>
+        {/* User Switcher or Logout Actions */}
+        <div className="mt-4 pt-3.5 border-t border-slate-100 space-y-2">
+          {process.env.NEXT_PUBLIC_DEMO_MODE === "true" && (
+            <Button
+              onClick={onOpenUserSwitcher}
+              variant="outline"
+              className="w-full h-11 rounded-2xl border-slate-200 text-slate-800 font-bold flex items-center justify-between px-4 touch-press"
+            >
+              <div className="flex items-center gap-2 text-xs">
+                <Users className="h-4 w-4 text-blue-600" />
+                <span>สลับบัญชีผู้ใช้งาน (admin / pcryclc)</span>
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-400" />
+            </Button>
+          )}
+
+          {onLogout && (
+            <Button
+              onClick={onLogout}
+              variant="outline"
+              className="w-full h-11 rounded-2xl border-red-200 bg-red-50/50 hover:bg-red-100 text-red-700 font-bold flex items-center justify-center gap-2 text-xs touch-press"
+            >
+              <LogOut className="h-4 w-4 text-red-600" />
+              <span>ออกจากระบบ (Sign Out)</span>
+            </Button>
+          )}
         </div>
       </div>
 

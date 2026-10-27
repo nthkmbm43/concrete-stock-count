@@ -10,44 +10,20 @@ import {
 
 export const MOCK_USERS: UserProfile[] = [
   {
-    id: "user-1",
-    email: "somchai@concretefactory.co.th",
-    full_name: "สมชาย ใจมั่นคง",
-    role: "STAFF",
-    plant_id: 1,
-    phone: "081-234-5678",
-  },
-  {
-    id: "user-2",
-    email: "wichai@concretefactory.co.th",
-    full_name: "วิชัย สุวรรณโชติ",
-    role: "STAFF",
-    plant_id: 2,
-    phone: "082-345-6789",
-  },
-  {
-    id: "user-3",
-    email: "nittaya@concretefactory.co.th",
-    full_name: "นิตยา รักษ์พงษ์",
-    role: "STAFF",
-    plant_id: 3,
-    phone: "083-456-7890",
-  },
-  {
-    id: "user-4",
-    email: "somporn@concretefactory.co.th",
-    full_name: "สมพร ทรัพย์ประเสริฐ",
-    role: "STAFF",
-    plant_id: 4,
-    phone: "084-567-8901",
-  },
-  {
-    id: "user-admin",
-    email: "admin@concretefactory.co.th",
-    full_name: "ชัยวัฒน์ (หัวหน้าคลัง)",
+    id: "usr-kcon-admin",
+    email: "admin@kcon.co.th",
+    full_name: "ผู้ดูแลระบบ (admin)",
     role: "ADMIN",
     plant_id: 1,
-    phone: "089-999-8888",
+    phone: "043-255-111",
+  },
+  {
+    id: "usr-kcon-pcryclc",
+    email: "pcryclc@kcon.co.th",
+    full_name: "พนักงานคลังสินค้า (pcryclc)",
+    role: "STAFF",
+    plant_id: 1,
+    phone: "043-255-111",
   },
 ];
 
@@ -522,63 +498,7 @@ function generateItems(): InventoryItem[] {
 
 export const MOCK_ITEMS: InventoryItem[] = generateItems();
 
-// Past Counts matching multi-location details from requirement
-export const MOCK_STOCK_COUNTS: StockCount[] = [
-  {
-    id: "count-1",
-    count_round_id: "round-oct-2569",
-    plant_id: 2,
-    inventory_item_id: "p2-item-fp250", // FP-250-18
-    user_id: "user-1",
-    user_name: "สมชาย ใจมั่นคง",
-    previous_quantity: 110,
-    counted_quantity: 120,
-    difference: 10,
-    status: "SUBMITTED",
-    notes: "นับรอบแรกประจำโซน A แยกตามล็อค A3, B3, B5",
-    locations: [
-      { lock_code: "A3", row_code: "6", previous_quantity: 40, counted_quantity: 40, difference: 0 },
-      { lock_code: "B3", row_code: "2", previous_quantity: 20, counted_quantity: 20, difference: 0 },
-      { lock_code: "B5", row_code: "1", previous_quantity: 50, counted_quantity: 60, difference: 10 },
-    ],
-    counted_at: "2026-10-25T14:20:00Z",
-    submitted_at: "2026-10-25T14:20:00Z",
-    created_at: "2026-10-25T14:20:00Z",
-  },
-  {
-    id: "count-2",
-    count_round_id: "round-oct-2569",
-    plant_id: 2,
-    inventory_item_id: "p2-item-fp250", // FP-250-18
-    user_id: "user-2",
-    user_name: "วิชัย สุวรรณโชติ",
-    previous_quantity: 120,
-    counted_quantity: 118,
-    difference: -2,
-    status: "SUBMITTED",
-    notes: "นับซ้ำเพื่อตรวจความเรียบร้อยรอบเช้า",
-    locations: [
-      { lock_code: "A3", row_code: "6", previous_quantity: 40, counted_quantity: 40, difference: 0 },
-      { lock_code: "B3", row_code: "2", previous_quantity: 20, counted_quantity: 20, difference: 0 },
-      { lock_code: "B5", row_code: "1", previous_quantity: 60, counted_quantity: 58, difference: -2 },
-    ],
-    counted_at: "2026-10-26T09:15:00Z",
-    submitted_at: "2026-10-26T09:15:00Z",
-    created_at: "2026-10-26T09:15:00Z",
-  },
-];
+// Empty stock counts and adjustments for clean production state (Ready for physical counts)
+export const MOCK_STOCK_COUNTS: StockCount[] = [];
 
-export const MOCK_ADJUSTMENTS: StockAdjustment[] = [
-  {
-    id: "adj-1",
-    inventory_item_id: "p2-item-fp250",
-    plant_id: 2,
-    adjusted_by: "user-admin",
-    adjusted_by_name: "ชัยวัฒน์ (หัวหน้าคลัง)",
-    previous_quantity: 118,
-    new_quantity: 120,
-    difference: 2,
-    reason: "ตรวจซ้ำ พบตกหล่นอีก 2 ต้น ที่หลังโรงงาน ล็อค B5",
-    created_at: "2026-10-26T11:12:00Z",
-  },
-];
+export const MOCK_ADJUSTMENTS: StockAdjustment[] = [];

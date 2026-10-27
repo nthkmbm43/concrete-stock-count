@@ -80,18 +80,17 @@ function notifyRealtime(type: string, payload: unknown) {
 
 export class DataProvider {
   // Current User Management
-  static async getCurrentUser(): Promise<UserProfile> {
+  static async getCurrentUser(): Promise<UserProfile | null> {
     const stored = getStored<UserProfile | null>(STORAGE_KEYS.CURRENT_USER, null);
-    if (stored) return stored;
-    return MOCK_USERS[1]; // Default to Somchai (Staff)
+    return stored || null;
   }
 
-  static getCurrentUserSync(): UserProfile {
+  static getCurrentUserSync(): UserProfile | null {
     const stored = getStored<UserProfile | null>(STORAGE_KEYS.CURRENT_USER, null);
-    return stored || MOCK_USERS[1];
+    return stored || null;
   }
 
-  static async setCurrentUser(user: UserProfile): Promise<void> {
+  static async setCurrentUser(user: UserProfile | null): Promise<void> {
     setStored(STORAGE_KEYS.CURRENT_USER, user);
     notifyRealtime("USER_CHANGED", user);
   }
@@ -174,8 +173,8 @@ export class DataProvider {
       count_round_id: count.count_round_id!,
       plant_id: count.plant_id!,
       inventory_item_id: count.inventory_item_id!,
-      user_id: user.id,
-      user_name: user.full_name,
+      user_id: user?.id || "usr-kcon-pcryclc",
+      user_name: user?.full_name || "พนักงานคลังสินค้า (pcryclc)",
       previous_quantity: count.previous_quantity || 0,
       counted_quantity: count.counted_quantity || 0,
       difference: (count.counted_quantity || 0) - (count.previous_quantity || 0),
@@ -274,7 +273,7 @@ export class DataProvider {
     locations?: StockCountLocation[];
     notes?: string;
   }): Promise<StockCount> {
-    const user = await this.getCurrentUser();
+    const user = (await this.getCurrentUser()) || MOCK_USERS[1];
     const items = await this.getItems();
     const item = items.find((i) => i.id === params.item_id);
     const prevQty = item?.current_quantity || 0;
@@ -388,7 +387,7 @@ export class DataProvider {
     new_quantity: number;
     reason: string;
   }): Promise<StockAdjustment> {
-    const user = await this.getCurrentUser();
+    const user = (await this.getCurrentUser()) || MOCK_USERS[0];
     const items = await this.getItems();
     const item = items.find((i) => i.id === params.item_id);
     const oldQty = item?.current_quantity || 0;

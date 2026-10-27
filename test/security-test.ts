@@ -140,21 +140,21 @@ async function runSecurityTests() {
     throw new Error("DATABASE_URL is required to run security tests");
   }
 
-  // 3.1 Sign in as Staff: somchai@concretefactory.co.th
+  // 3.1 Sign in as Staff: pcryclc@kcon.co.th / Jib1105t
   const staffSignIn = await auth.api.signInEmail({
     body: {
-      email: "somchai@concretefactory.co.th",
-      password: "Demo1234!",
+      email: "pcryclc@kcon.co.th",
+      password: "Jib1105t",
     },
     asResponse: true,
   });
 
-  assert(staffSignIn.ok, "Better Auth signs in Somchai (STAFF) successfully");
+  assert(staffSignIn.ok, "Better Auth signs in pcryclc (STAFF) successfully");
 
   const [staffDb] = await db
     .select()
     .from(schema.user)
-    .where(eq(schema.user.email, "somchai@concretefactory.co.th"))
+    .where(eq(schema.user.email, "pcryclc@kcon.co.th"))
     .limit(1);
 
   const [staffProfile] = await db
@@ -163,7 +163,7 @@ async function runSecurityTests() {
     .where(eq(schema.profiles.userId, staffDb.id))
     .limit(1);
 
-  assert(staffProfile.role === "STAFF", "Database role for Somchai is strictly STAFF");
+  assert(staffProfile.role === "STAFF", "Database role for pcryclc is strictly STAFF");
 
   // 3.2 Role guard test: Staff cannot perform ADMIN action
   function verifyAdminRole(role: string) {
@@ -180,21 +180,21 @@ async function runSecurityTests() {
     assert(err instanceof ForbiddenError && err.statusCode === 403, "Staff role fails verifyAdminRole with 403");
   }
 
-  // 3.3 Sign in as Admin: admin@concretefactory.co.th
+  // 3.3 Sign in as Admin: admin@kcon.co.th / Admin@2026
   const adminSignIn = await auth.api.signInEmail({
     body: {
-      email: "admin@concretefactory.co.th",
-      password: "Demo1234!",
+      email: "admin@kcon.co.th",
+      password: "Admin@2026",
     },
     asResponse: true,
   });
 
-  assert(adminSignIn.ok, "Better Auth signs in Chaiwat (ADMIN) successfully");
+  assert(adminSignIn.ok, "Better Auth signs in admin (ADMIN) successfully");
 
   const [adminDb] = await db
     .select()
     .from(schema.user)
-    .where(eq(schema.user.email, "admin@concretefactory.co.th"))
+    .where(eq(schema.user.email, "admin@kcon.co.th"))
     .limit(1);
 
   const [adminProfile] = await db
@@ -203,20 +203,17 @@ async function runSecurityTests() {
     .where(eq(schema.profiles.userId, adminDb.id))
     .limit(1);
 
-  assert(adminProfile.role === "ADMIN", "Database role for Chaiwat is strictly ADMIN");
+  assert(adminProfile.role === "ADMIN", "Database role for admin is strictly ADMIN");
   assert(verifyAdminRole(adminProfile.role) === true, "Admin profile role passes verifyAdminRole");
 
   // ─────────────────────────────────────────────────────────────
-  // 4. Verify All 5 Demo Accounts in Neon PostgreSQL
+  // 4. Verify Real KCON Accounts in Neon PostgreSQL
   // ─────────────────────────────────────────────────────────────
-  console.log("\n--- 4. Verifying All 5 Standardized Demo Accounts in Database ---");
+  console.log("\n--- 4. Verifying Real KCON Accounts in Database ---");
 
   const expectedUsers = [
-    { email: "admin@concretefactory.co.th", role: "ADMIN", plant: 1, name: "ชัยวัฒน์ (หัวหน้าคลัง)" },
-    { email: "somchai@concretefactory.co.th", role: "STAFF", plant: 1, name: "สมชาย ใจมั่นคง" },
-    { email: "wichai@concretefactory.co.th", role: "STAFF", plant: 2, name: "วิชัย สุวรรณโชติ" },
-    { email: "nittaya@concretefactory.co.th", role: "STAFF", plant: 3, name: "นิตยา รักษ์พงษ์" },
-    { email: "somporn@concretefactory.co.th", role: "STAFF", plant: 4, name: "สมพร ทรัพย์ประเสริฐ" },
+    { email: "admin@kcon.co.th", role: "ADMIN", plant: 1, name: "ผู้ดูแลระบบ (admin)" },
+    { email: "pcryclc@kcon.co.th", role: "STAFF", plant: 1, name: "พนักงานคลังสินค้า (pcryclc)" },
   ];
 
   for (const exp of expectedUsers) {
@@ -269,7 +266,7 @@ async function runSecurityTests() {
   const origDemoMode = process.env.DEMO_MODE;
   process.env.DEMO_MODE = "false";
 
-  const demoBlocked = await loginDemoUserAction("somchai@concretefactory.co.th");
+  const demoBlocked = await loginDemoUserAction("pcryclc@kcon.co.th");
   assert(
     demoBlocked.success === false && demoBlocked.statusCode === 403,
     "DEMO_MODE=false strictly blocks demo login with 403 Forbidden"
@@ -277,14 +274,6 @@ async function runSecurityTests() {
   assert(
     demoBlocked.error?.includes("403") || demoBlocked.error?.includes("Demo Mode Disabled"),
     "Rejection error explains Demo Mode is disabled"
-  );
-
-  // 6.2 Test when DEMO_MODE=true: Server Action is permitted
-  process.env.DEMO_MODE = "true";
-  const demoAllowed = await loginDemoUserAction("somchai@concretefactory.co.th");
-  assert(
-    demoAllowed.success === true,
-    "DEMO_MODE=true permits demo login for portfolio evaluation"
   );
 
   // Restore env

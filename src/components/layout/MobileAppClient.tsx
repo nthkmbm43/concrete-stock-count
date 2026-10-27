@@ -28,7 +28,8 @@ import { Button } from "@/components/ui/button";
 import { ConcreteRealtimeProvider } from "@/lib/realtime/RealtimeProvider";
 import { broadcastRealtimeEvent, subscribeRealtimeEvents } from "@/lib/realtime/client";
 import { adjustStockAction, submitStockCountAction, saveProductAction, saveCountRoundAction } from "@/actions/stock-actions";
-import { loginDemoUserAction } from "@/actions/auth-actions";
+import { loginDemoUserAction, logoutUserAction } from "@/actions/auth-actions";
+import { LoginView } from "@/components/auth/LoginView";
 import { toast } from "sonner";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
@@ -40,7 +41,7 @@ export interface InitialAppData {
   items: InventoryItem[];
   counts: StockCount[];
   adjustments: StockAdjustment[];
-  currentUser: UserProfile;
+  currentUser: UserProfile | null;
   users: UserProfile[];
 }
 
@@ -50,7 +51,7 @@ interface MobileAppClientProps {
 
 export function MobileAppClient({ initialData }: MobileAppClientProps) {
   // 1. Core State initialized from SSR (Rule 15, 16: Zero Full-Page Skeleton on load)
-  const [currentUser, setCurrentUser] = useState<UserProfile>(initialData.currentUser);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(initialData.currentUser);
   const [users] = useState<UserProfile[]>(initialData.users);
   const [currentTab, setCurrentTab] = useState<NavTab>("home");
 
@@ -188,12 +189,12 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
 
   // Initialize session cookie on mount (only in DEMO_MODE)
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
+    if (process.env.NEXT_PUBLIC_DEMO_MODE === "true" && currentUser?.email) {
       loginDemoUserAction(currentUser.email).catch((err) => {
         console.debug("Auto-session init error:", err);
       });
     }
-  }, [currentUser.email]);
+  }, [currentUser?.email]);
 
   // Handle User Switch
   const handleSelectUser = async (user: UserProfile) => {
@@ -242,7 +243,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
               ...i,
               current_quantity: params.counted_quantity,
               last_counted_at: nowIso,
-              last_counted_by: currentUser.full_name,
+              last_counted_by: currentUser?.full_name || "pcryclc",
             }
           : i
       )
@@ -414,6 +415,18 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logoutUserAction();
+      setCurrentUser(null);
+      await DataProvider.setCurrentUser(null);
+      toast.success("ออกจากระบบเรียบร้อยแล้ว");
+    } catch (err) {
+      console.error("Logout error:", err);
+      setCurrentUser(null);
+    }
+  };
+
   const effectiveRound =
     activeRound ||
     rounds[0] || {
@@ -428,6 +441,18 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
       plant_ids: [1, 2, 3, 4],
       created_at: new Date().toISOString(),
     };
+
+  if (!currentUser) {
+    return (
+      <LoginView
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          DataProvider.setCurrentUser(user);
+          refreshData();
+        }}
+      />
+    );
+  }
 
   return (
     <ConcreteRealtimeProvider>
@@ -447,6 +472,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
         uncountedCount={progress ? progress.uncounted_skus : 0}
         hideNav={Boolean(selectedItem)}
         onOpenExport={() => setExportModalOpen(true)}
+        onLogout={handleLogout}
       >
         {/* Error banner with retry */}
         {errorMsg && (
@@ -565,6 +591,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
             currentUser={currentUser}
             users={users}
             onOpenUserSwitcher={() => {}}
+            onLogout={handleLogout}
             activeRound={effectiveRound}
             progress={progress}
             items={items}

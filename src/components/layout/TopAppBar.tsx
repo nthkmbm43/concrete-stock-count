@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ChevronLeft, Radio, Users, FileSpreadsheet, Upload } from "lucide-react";
+import { ChevronLeft, Radio, Users, FileSpreadsheet, Upload, LogOut } from "lucide-react";
 import { UserProfile } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { CompanyLogo } from "@/components/brand/CompanyLogo";
@@ -15,6 +15,7 @@ interface TopAppBarProps {
   onOpenUserSwitcher: () => void;
   onOpenExport?: () => void;
   onOpenImport?: () => void;
+  onLogout?: () => void;
   rightAction?: React.ReactNode;
 }
 
@@ -26,6 +27,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   onOpenUserSwitcher,
   onOpenExport,
   onOpenImport,
+  onLogout,
   rightAction,
 }) => {
   return (
@@ -137,6 +139,19 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
                     {currentUser.role}
                   </Badge>
                 </div>
+              )}
+
+              {/* Logout button */}
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  title="ออกจากระบบ"
+                  aria-label="ออกจากระบบ"
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 active:scale-95 transition-all cursor-pointer touch-press"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </button>
               )}
             </div>
           )}

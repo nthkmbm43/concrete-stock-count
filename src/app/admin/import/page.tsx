@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { redirect } from "next/navigation";
 import { getCompanySettings } from "@/db/queries/company";
 import { getCurrentUser } from "@/db/queries";
 import { DataImportPageClient } from "@/components/admin/DataImportPageClient";
@@ -16,6 +17,10 @@ export default async function AdminImportPage() {
     getCompanySettings(),
     getCurrentUser(),
   ]);
+
+  if (!currentUser || currentUser.role !== "ADMIN") {
+    redirect("/");
+  }
 
   return (
     <DataImportPageClient

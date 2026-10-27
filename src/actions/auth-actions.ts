@@ -3,7 +3,7 @@
 import { cookies, headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { UserProfile } from "@/lib/types";
 
 /**
@@ -145,5 +145,96 @@ export async function logoutUserAction() {
   } catch (err: any) {
     console.error("logoutUserAction error:", err);
     return { success: false, error: err.message || "เกิดข้อผิดพลาดในการออกจากระบบ" };
+  }
+}
+
+/**
+ * Server Action: Authenticates a user with username/email and password
+ * Issues a genuine Better Auth session cookie.
+ */
+export async function loginUserAction(identifier: string, password: string) {
+  try {
+    const rawId = identifier?.trim();
+    if (!rawId || !password) {
+      return { success: false, error: "กรุณาระบุชื่อผู้ใช้งานและรหัสผ่าน" };
+    }
+
+    let email = rawId.toLowerCase();
+    if (rawId === "admin" || rawId === "admin@kcon.co.th") {
+      email = "admin@kcon.co.th";
+    } else if (rawId === "pcryclc" || rawId === "pcryclc@kcon.co.th") {
+      email = "pcryclc@kcon.co.th";
+    } else if (db) {
+      const [u] = await db
+        .select()
+        .from(schema.user)
+        .where(or(eq(schema.user.name, rawId), eq(schema.user.email, rawId.toLowerCase())))
+        .limit(1);
+      if (u?.email) {
+        email = u.email;
+      }
+    }
+
+    let cookieStore: any = null;
+    try {
+      cookieStore = await cookies();
+    } catch {
+      // Non-request context
+    }
+
+    // 1. Authenticate with Better Auth backend
+    const res = await auth.api.signInEmail({
+      body: {
+        email,
+        password,
+      },
+      asResponse: true,
+    });
+
+    if (!res.ok) {
+      return { success: false, error: "ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง" };
+    }
+
+    // 2. Set the signed session cookie in Next.js response if cookie store is available
+    const setCookies = res.headers.getSetCookie
+      ? res.headers.getSetCookie()
+      : [res.headers.get("set-cookie") || ""].filter(Boolean);
+
+    if (cookieStore) {
+      applySetCookies(setCookies, cookieStore);
+    }
+
+    // 3. Fetch profile for UI hydration
+    if (db) {
+      const [user] = await db
+        .select()
+        .from(schema.user)
+        .where(eq(schema.user.email, email))
+        .limit(1);
+
+      if (user) {
+        const [profile] = await db
+          .select()
+          .from(schema.profiles)
+          .where(eq(schema.profiles.userId, user.id))
+          .limit(1);
+
+        const userProfile: UserProfile = {
+          id: user.id,
+          full_name: profile?.fullName || user.name,
+          email: user.email,
+          role: (profile?.role || user.role || "STAFF") as "STAFF" | "ADMIN",
+          plant_id: profile?.plantId || 1,
+          phone: profile?.phone || undefined,
+        };
+
+        return { success: true, user: userProfile };
+      }
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("loginUserAction error:", err);
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ" };
   }
 }

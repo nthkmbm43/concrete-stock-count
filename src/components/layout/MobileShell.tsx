@@ -20,6 +20,7 @@ interface MobileShellProps {
   uncountedCount?: number;
   hideNav?: boolean;
   onOpenExport?: () => void;
+  onLogout?: () => void;
   rightAction?: React.ReactNode;
   className?: string;
 }
@@ -37,6 +38,7 @@ export const MobileShell: React.FC<MobileShellProps> = ({
   uncountedCount = 0,
   hideNav = false,
   onOpenExport,
+  onLogout,
   rightAction,
   className,
 }) => {
@@ -55,6 +57,7 @@ export const MobileShell: React.FC<MobileShellProps> = ({
           currentUser={currentUser}
           onOpenUserSwitcher={() => setUserSwitcherOpen(true)}
           onOpenExport={onOpenExport}
+          onLogout={onLogout}
           rightAction={rightAction}
         />
 
