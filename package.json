@@ -17,7 +17,8 @@
     "test:branding": "tsx test/branding-assets-test.ts",
     "test:security": "tsx test/security-test.ts",
     "test:import": "tsx test/import-test.ts",
-    "test": "tsx test/stock-count-test.ts && tsx test/export-test.ts && tsx test/branding-assets-test.ts && tsx test/security-test.ts && tsx test/import-test.ts"
+    "test:qr": "tsx test/qr-barcode-test.ts",
+    "test": "tsx test/stock-count-test.ts && tsx test/export-test.ts && tsx test/branding-assets-test.ts && tsx test/security-test.ts && tsx test/import-test.ts && tsx test/qr-barcode-test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.0",
@@ -42,10 +43,12 @@
     "dotenv": "^18.0.9",
     "drizzle-orm": "^0.45.4",
     "exceljs": "^4.4.0",
+    "html5-qrcode": "^2.3.8",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.9",
     "lucide-react": "^1.61.0",
     "next": "16.4.3",
+    "qrcode": "^1.5.4",
     "react": "19.3.0",
     "react-calendar": "^6.0.1",
     "react-dom": "19.3.0",
@@ -57,6 +60,7 @@
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.11",

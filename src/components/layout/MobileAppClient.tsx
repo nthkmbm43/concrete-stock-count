@@ -30,6 +30,9 @@ import { broadcastRealtimeEvent, subscribeRealtimeEvents } from "@/lib/realtime/
 import { adjustStockAction, submitStockCountAction, saveProductAction, saveCountRoundAction } from "@/actions/stock-actions";
 import { loginDemoUserAction, logoutUserAction } from "@/actions/auth-actions";
 import { LoginView } from "@/components/auth/LoginView";
+import { QrScannerModal } from "@/components/scanner/QrScannerModal";
+import { ScannedProductSheet } from "@/components/scanner/ScannedProductSheet";
+import { ProductQrModal } from "@/components/scanner/ProductQrModal";
 import { toast } from "sonner";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
@@ -79,6 +82,11 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [roundModalOpen, setRoundModalOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
+
+  // Scanner & QR Modals
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scannedItem, setScannedItem] = useState<InventoryItem | null>(null);
+  const [productQrItem, setProductQrItem] = useState<InventoryItem | null>(null);
 
   // Background refresh helper
   const refreshData = useCallback(async () => {
@@ -427,6 +435,27 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
     }
   };
 
+  // Scanner & QR Code Handlers
+  const handleSelectProductFromScan = (item: InventoryItem) => {
+    setScannedItem(item);
+  };
+
+  const handleStartCountFromScan = (item: InventoryItem) => {
+    setSelectedItem(item);
+    setSelectedPlantId(item.plant_id);
+    setCurrentTab("count");
+    setScannedItem(null);
+  };
+
+  const handleScanNext = () => {
+    setScannedItem(null);
+    setScannerOpen(true);
+  };
+
+  const handleViewQr = (item: InventoryItem) => {
+    setProductQrItem(item);
+  };
+
   const effectiveRound =
     activeRound ||
     rounds[0] || {
@@ -472,6 +501,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
         uncountedCount={progress ? progress.uncounted_skus : 0}
         hideNav={Boolean(selectedItem)}
         onOpenExport={() => setExportModalOpen(true)}
+        onOpenScan={() => setScannerOpen(true)}
         onLogout={handleLogout}
       >
         {/* Error banner with retry */}
@@ -511,6 +541,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
               setCurrentTab("count");
             }}
             onViewStock={() => setCurrentTab("stock")}
+            onOpenScan={() => setScannerOpen(true)}
           />
         )}
 
@@ -553,6 +584,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
                 onSelectPlant={setSelectedPlantId}
                 onCountItem={(item) => setSelectedItem(item)}
                 onOpenExport={() => setExportModalOpen(true)}
+                onOpenScan={() => setScannerOpen(true)}
               />
             )}
           </>
@@ -571,6 +603,8 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
               setCurrentTab("count");
             }}
             onOpenExport={() => setExportModalOpen(true)}
+            onOpenScan={() => setScannerOpen(true)}
+            onViewQr={handleViewQr}
           />
         )}
 
@@ -639,6 +673,31 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
           activeRoundId={effectiveRound?.id}
           plants={plants}
           currentPlantId={selectedPlantId || undefined}
+        />
+
+        {/* QR & Barcode Scanner Modal */}
+        <QrScannerModal
+          open={scannerOpen}
+          onOpenChange={setScannerOpen}
+          items={items}
+          onSelectProduct={handleSelectProductFromScan}
+        />
+
+        {/* Scanned Product Detail Bottom Sheet */}
+        <ScannedProductSheet
+          item={scannedItem}
+          open={Boolean(scannedItem)}
+          onOpenChange={(open) => !open && setScannedItem(null)}
+          onStartCount={handleStartCountFromScan}
+          onViewQr={handleViewQr}
+          onScanNext={handleScanNext}
+        />
+
+        {/* Product QR & Barcode Tag Print Modal */}
+        <ProductQrModal
+          item={productQrItem}
+          open={Boolean(productQrItem)}
+          onOpenChange={(open) => !open && setProductQrItem(null)}
         />
       </MobileShell>
     </ConcreteRealtimeProvider>

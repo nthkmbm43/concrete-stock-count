@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ChevronLeft, Radio, Users, FileSpreadsheet, Upload, LogOut } from "lucide-react";
+import { ChevronLeft, Radio, Users, FileSpreadsheet, Upload, LogOut, QrCode } from "lucide-react";
 import { UserProfile } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { CompanyLogo } from "@/components/brand/CompanyLogo";
@@ -15,6 +15,7 @@ interface TopAppBarProps {
   onOpenUserSwitcher: () => void;
   onOpenExport?: () => void;
   onOpenImport?: () => void;
+  onOpenScan?: () => void;
   onLogout?: () => void;
   rightAction?: React.ReactNode;
 }
@@ -27,6 +28,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   onOpenUserSwitcher,
   onOpenExport,
   onOpenImport,
+  onOpenScan,
   onLogout,
   rightAction,
 }) => {
@@ -90,6 +92,19 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
                 >
                   <Upload className="h-3.5 w-3.5" />
                 </Link>
+              )}
+
+              {/* QR Code / Barcode Scanner Quick Trigger */}
+              {onOpenScan && (
+                <button
+                  type="button"
+                  onClick={onOpenScan}
+                  title="สแกน QR Code / บาร์โค้ดสินค้า"
+                  aria-label="สแกน QR Code / บาร์โค้ดสินค้า"
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200/80 active:scale-95 transition-all cursor-pointer touch-press"
+                >
+                  <QrCode className="h-4 w-4" />
+                </button>
               )}
 
               {/* Export Report Quick Trigger */}

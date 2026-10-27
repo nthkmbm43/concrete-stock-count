@@ -12,8 +12,9 @@ import {
 import { PlantCard } from "@/components/count/PlantCard";
 import { ProductCard } from "@/components/count/ProductCard";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Search, Filter, Layers, ArrowLeft, RefreshCw, FileSpreadsheet } from "lucide-react";
+import { Search, Filter, Layers, ArrowLeft, RefreshCw, FileSpreadsheet, QrCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -27,6 +28,7 @@ interface CountRoundViewProps {
   onSelectPlant: (plantId: number | null) => void;
   onCountItem: (item: InventoryItem) => void;
   onOpenExport?: () => void;
+  onOpenScan?: () => void;
 }
 
 export const CountRoundView: React.FC<CountRoundViewProps> = ({
@@ -39,6 +41,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
   onSelectPlant,
   onCountItem,
   onOpenExport,
+  onOpenScan,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -258,23 +261,38 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
         </div>
       </div>
 
-      {/* Search Bar per Requirement #19 */}
-      <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-        <Input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="ค้นหา SKU / ชื่อสินค้า / ขนาด..."
-          className="pl-10.5 pr-4 h-12 rounded-2xl bg-white border-2 border-slate-200/90 text-sm font-semibold placeholder:text-slate-400 focus:border-blue-600 shadow-xs"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery("")}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 p-1"
+      {/* Search Bar & Scan Button */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="ค้นหา SKU / ชื่อสินค้า / ขนาด..."
+            className="pl-10.5 pr-4 h-12 rounded-2xl bg-white border-2 border-slate-200/90 text-sm font-semibold placeholder:text-slate-400 focus:border-blue-600 shadow-xs"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 p-1"
+            >
+              ล้าง
+            </button>
+          )}
+        </div>
+
+        {onOpenScan && (
+          <Button
+            type="button"
+            onClick={onOpenScan}
+            title="สแกน QR / บาร์โค้ด"
+            aria-label="สแกน QR / บาร์โค้ด"
+            className="h-12 px-3.5 shrink-0 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-xs flex items-center gap-1.5 touch-press font-bold text-xs"
           >
-            ล้าง
-          </button>
+            <QrCode className="h-4 w-4" />
+            <span className="hidden xs:inline">สแกน</span>
+          </Button>
         )}
       </div>
 

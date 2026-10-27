@@ -18,6 +18,7 @@ import {
   Filter,
   FileSpreadsheet,
   Upload,
+  QrCode,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,8 @@ interface StockViewProps {
   onAdjustStock: (item: InventoryItem) => void;
   onCountItem?: (item: InventoryItem) => void;
   onOpenExport?: () => void;
+  onOpenScan?: () => void;
+  onViewQr?: (item: InventoryItem) => void;
 }
 
 export const StockView: React.FC<StockViewProps> = ({
@@ -37,6 +40,8 @@ export const StockView: React.FC<StockViewProps> = ({
   onAdjustStock,
   onCountItem,
   onOpenExport,
+  onOpenScan,
+  onViewQr,
 }) => {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
@@ -123,23 +128,38 @@ export const StockView: React.FC<StockViewProps> = ({
         </div>
       </div>
 
-      {/* Search Bar per Requirement #28 */}
-      <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-        <Input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="ค้นหาชื่อ, SKU, ขนาด, โรง, โซน..."
-          className="pl-10.5 pr-4 h-12 rounded-2xl bg-white border-2 border-slate-200/90 text-sm font-semibold placeholder:text-slate-400 focus:border-blue-600 shadow-xs"
-        />
-        {search && (
-          <button
-            onClick={() => setSearch("")}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 p-1"
+      {/* Search Bar & Scan Button */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <Input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ค้นหาชื่อ, SKU, ขนาด, โรง, โซน..."
+            className="pl-10.5 pr-4 h-12 rounded-2xl bg-white border-2 border-slate-200/90 text-sm font-semibold placeholder:text-slate-400 focus:border-blue-600 shadow-xs"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 p-1"
+            >
+              ล้าง
+            </button>
+          )}
+        </div>
+
+        {onOpenScan && (
+          <Button
+            type="button"
+            onClick={onOpenScan}
+            title="สแกน QR / บาร์โค้ด"
+            aria-label="สแกน QR / บาร์โค้ด"
+            className="h-12 px-3.5 shrink-0 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-xs flex items-center gap-1.5 touch-press font-bold text-xs"
           >
-            ล้าง
-          </button>
+            <QrCode className="h-4 w-4" />
+            <span className="hidden xs:inline">สแกน</span>
+          </Button>
         )}
       </div>
 
@@ -279,7 +299,7 @@ export const StockView: React.FC<StockViewProps> = ({
                   )}
                 </div>
 
-                {/* Actions: Admin Adjust vs Staff Count */}
+                {/* Actions: Admin Adjust vs Staff Count vs QR Tag */}
                 <div className="flex items-center gap-2">
                   {isAdmin && (
                     <Button
@@ -301,6 +321,20 @@ export const StockView: React.FC<StockViewProps> = ({
                       className="flex-1 h-10 rounded-xl font-bold flex items-center justify-center gap-1.5 touch-press"
                     >
                       <span>นับสินค้านี้</span>
+                    </Button>
+                  )}
+
+                  {onViewQr && (
+                    <Button
+                      type="button"
+                      onClick={() => onViewQr(item)}
+                      variant="outline"
+                      size="sm"
+                      title="ดูและพิมพ์ป้าย QR Code"
+                      aria-label="ดูและพิมพ์ป้าย QR Code"
+                      className="h-10 w-10 shrink-0 p-0 rounded-xl border-slate-200 text-slate-700 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center touch-press"
+                    >
+                      <QrCode className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
