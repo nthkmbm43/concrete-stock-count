@@ -5,7 +5,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { InventoryItem } from "@/lib/types";
 import { formatNumber } from "@/lib/utils";
-import { CheckCircle2, ArrowRight, ListFilter } from "lucide-react";
+import { CheckCircle2, ArrowRight, ListFilter, ScanLine } from "lucide-react";
 import confetti from "canvas-confetti";
 
 interface CountSuccessModalProps {
@@ -13,6 +13,7 @@ interface CountSuccessModalProps {
   item: InventoryItem;
   countedQuantity: number;
   onNextItem: () => void;
+  onScanNext?: () => void;
   onBackToList: () => void;
   hasNextItem?: boolean;
 }
@@ -22,6 +23,7 @@ export const CountSuccessModal: React.FC<CountSuccessModalProps> = ({
   item,
   countedQuantity,
   onNextItem,
+  onScanNext,
   onBackToList,
   hasNextItem = true,
 }) => {
@@ -106,7 +108,20 @@ export const CountSuccessModal: React.FC<CountSuccessModalProps> = ({
             </Button>
           )}
 
-          {/* Secondary: [กลับรายการสินค้า] */}
+          {/* Secondary 1: [สแกน QR กองถัดไป] */}
+          {onScanNext && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onScanNext}
+              className="w-full h-13 rounded-2xl border-2 border-blue-200 bg-blue-50/60 text-blue-700 font-bold text-base hover:bg-blue-100/60 flex items-center justify-center gap-2 touch-press"
+            >
+              <ScanLine className="h-5 w-5" />
+              <span>สแกน QR กองถัดไป</span>
+            </Button>
+          )}
+
+          {/* Secondary 2: [กลับรายการสินค้า] */}
           <Button
             type="button"
             variant="outline"
@@ -114,7 +129,7 @@ export const CountSuccessModal: React.FC<CountSuccessModalProps> = ({
             className="w-full h-13 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold text-base hover:bg-slate-100 flex items-center justify-center gap-2 touch-press"
           >
             <ListFilter className="h-5 w-5" />
-            <span>กลับรายการสินค้า</span>
+            <span>กลับรายการสินค้า / ดูภาพรวม</span>
           </Button>
         </div>
       </SheetContent>

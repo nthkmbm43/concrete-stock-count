@@ -679,6 +679,10 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
                   }));
                 }}
                 onSelectNextItem={(next) => setSelectedItem(next)}
+                onScanNext={() => {
+                  setSelectedItem(null);
+                  setScannerOpen(true);
+                }}
               />
             ) : (
               <CountRoundView

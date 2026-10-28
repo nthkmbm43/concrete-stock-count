@@ -75,6 +75,7 @@ interface ItemCountViewProps {
   }) => Promise<StockCount>;
   fetchItemHistory: (itemId: string) => Promise<TimelineEntry[]>;
   onSelectNextItem: (nextItem: InventoryItem) => void;
+  onScanNext?: () => void;
 }
 
 export const ItemCountView: React.FC<ItemCountViewProps> = ({
@@ -87,6 +88,7 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
   onSaveDraft,
   fetchItemHistory,
   onSelectNextItem,
+  onScanNext,
 }) => {
   // 1. Locations State
   const [locations, setLocations] = useState<LocationState[]>([]);
@@ -742,6 +744,14 @@ export const ItemCountView: React.FC<ItemCountViewProps> = ({
           setSuccessOpen(false);
           if (nextItem && nextItem.id !== item.id) {
             onSelectNextItem(nextItem);
+          } else {
+            onBack();
+          }
+        }}
+        onScanNext={() => {
+          setSuccessOpen(false);
+          if (onScanNext) {
+            onScanNext();
           } else {
             onBack();
           }
