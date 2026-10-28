@@ -23,6 +23,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const isCounted = countStatus === "COUNTED" || countStatus === "RECOUNTED";
   const isRecounted = countStatus === "RECOUNTED" || countCount >= 2;
 
+  // Real location string from storage locations or fallback
+  const locationLabel = React.useMemo(() => {
+    if (item.locations && item.locations.length > 0) {
+      const locStrs = item.locations.map(
+        (l) => `${l.lock_code || "L"}/${l.row_code || "1"}`
+      );
+      return locStrs.length <= 2
+        ? locStrs.join(", ")
+        : `${locStrs.slice(0, 2).join(", ")} +${locStrs.length - 2}`;
+    }
+    return item.zone || `โรง ${item.plant_id}`;
+  }, [item]);
+
   return (
     <div className="relative rounded-3xl border-2 border-slate-200/90 bg-white p-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all">
       {/* Top Meta: SKU & Status Badge */}
@@ -33,7 +46,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </span>
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500">
             <MapPin className="h-3 w-3 text-slate-400" />
-            {item.zone}
+            {locationLabel}
           </span>
         </div>
 

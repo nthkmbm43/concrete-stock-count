@@ -144,18 +144,18 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
             </h2>
             <div className="flex items-baseline gap-1">
               <span className="text-lg font-black text-blue-600">
-                {progress?.counted_skus ?? 287}
+                {progress?.counted_skus ?? 0}
               </span>
-              <span className="text-xs text-slate-400">/ {progress?.total_skus ?? 406}</span>
+              <span className="text-xs text-slate-400">/ {progress?.total_skus ?? items.length}</span>
               <span className="text-xs font-black text-emerald-600 ml-1">
-                ({progress?.percentage ?? 71}%)
+                ({progress?.percentage ?? 0}%)
               </span>
             </div>
           </div>
 
           <div className="mt-3">
             <Progress
-              value={progress?.percentage ?? 71}
+              value={progress?.percentage ?? 0}
               indicatorColor="bg-blue-600"
               className="h-2.5 bg-slate-100"
             />

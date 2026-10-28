@@ -19,9 +19,9 @@ export const RoundBanner: React.FC<RoundBannerProps> = ({
   progress,
   onEnterRound,
 }) => {
-  const total = progress?.total_skus ?? 406;
-  const counted = progress?.counted_skus ?? 287;
-  const pct = progress?.percentage ?? (total > 0 ? Math.round((counted / total) * 100) : 71);
+  const total = progress?.total_skus ?? 0;
+  const counted = progress?.counted_skus ?? 0;
+  const pct = progress?.percentage ?? (total > 0 ? Math.round((counted / total) * 100) : 0);
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-blue-700 via-blue-600 to-indigo-800 p-5 text-white shadow-xl shadow-blue-600/20">

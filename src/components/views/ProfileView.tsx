@@ -148,10 +148,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </span>
               <div className="flex items-baseline gap-1 mt-1">
                 <span className="text-2xl font-black text-blue-600">
-                  {progress?.percentage ?? 71}%
+                  {progress?.percentage ?? 0}%
                 </span>
                 <span className="text-xs text-slate-400">
-                  ({progress?.counted_skus ?? 287}/{progress?.total_skus ?? 406})
+                  ({progress?.counted_skus ?? 0}/{progress?.total_skus ?? items.length})
                 </span>
               </div>
             </div>
@@ -164,7 +164,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </span>
               <div className="flex items-baseline gap-1 mt-1">
                 <span className="text-2xl font-black text-amber-700">
-                  {progress?.uncounted_skus ?? 119}
+                  {progress?.uncounted_skus ?? items.length}
                 </span>
                 <span className="text-xs text-slate-400">รายการ</span>
               </div>
@@ -178,7 +178,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </span>
               <div className="flex items-baseline gap-1 mt-1">
                 <span className="text-2xl font-black text-blue-700">
-                  {progress?.recounted_skus ?? 8}
+                  {progress?.recounted_skus ?? 0}
                 </span>
                 <span className="text-xs text-slate-400">รายการ</span>
               </div>
@@ -192,7 +192,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </span>
               <div className="flex items-baseline gap-1 mt-1">
                 <span className="text-2xl font-black text-rose-600">
-                  {progress?.difference_skus ?? 24}
+                  {progress?.difference_skus ?? 0}
                 </span>
                 <span className="text-xs text-slate-400">รายการ</span>
               </div>

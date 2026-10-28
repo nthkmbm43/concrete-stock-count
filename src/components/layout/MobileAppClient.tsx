@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, useTransition } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, useTransition } from "react";
 import {
   UserProfile,
   Plant,
@@ -471,6 +471,87 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
       created_at: new Date().toISOString(),
     };
 
+  // ────────────────────────────────────────────────────────
+  // Correlated Data: Real Plant SKUs & Live Progress
+  // ────────────────────────────────────────────────────────
+  const effectivePlants = useMemo(() => {
+    return plants.map((plant) => {
+      const realCount = items.filter((i) => i.plant_id === plant.id).length;
+      return {
+        ...plant,
+        total_skus: realCount > 0 ? realCount : plant.total_skus,
+      };
+    });
+  }, [plants, items]);
+
+  const effectiveProgress = useMemo<RoundProgress>(() => {
+    const roundId = effectiveRound?.id || "default";
+    const relevantItems = items.filter((item) =>
+      effectiveRound?.plant_ids ? effectiveRound.plant_ids.includes(item.plant_id) : true
+    );
+    const submittedCounts = counts.filter(
+      (c) => c.status === "SUBMITTED" && (!effectiveRound?.id || c.count_round_id === effectiveRound.id)
+    );
+    const countedItemIds = new Set(submittedCounts.map((c) => c.inventory_item_id));
+
+    const totalSkus = relevantItems.length || items.length;
+    const countedSkus = countedItemIds.size;
+    const uncountedSkus = Math.max(0, totalSkus - countedSkus);
+    const percentage = totalSkus > 0 ? Math.round((countedSkus / totalSkus) * 100) : 0;
+
+    let matchedCount = 0;
+    let overCount = 0;
+    let underCount = 0;
+    let recountedSkus = 0;
+
+    countedItemIds.forEach((itemId) => {
+      const itemCounts = submittedCounts.filter((c) => c.inventory_item_id === itemId);
+      if (itemCounts.length >= 2) recountedSkus++;
+      const latestCount = itemCounts[0];
+      if (latestCount) {
+        if (latestCount.difference === 0) matchedCount++;
+        else if (latestCount.difference > 0) overCount++;
+        else underCount++;
+      }
+    });
+
+    const plantProgressList = effectivePlants.map((plant: Plant) => {
+      const plantItems = items.filter((i) => i.plant_id === plant.id);
+      const plantCountedIds = new Set(
+        submittedCounts
+          .filter((c) => plantItems.some((pi) => pi.id === c.inventory_item_id))
+          .map((c) => c.inventory_item_id)
+      );
+      const pTotal = plantItems.length;
+      const pCounted = plantCountedIds.size;
+      const pUncounted = Math.max(0, pTotal - pCounted);
+      const pPct = pTotal > 0 ? Math.round((pCounted / pTotal) * 100) : 0;
+      return {
+        plant_id: plant.id,
+        plant_name: plant.name,
+        total_skus: pTotal,
+        counted_skus: pCounted,
+        uncounted_skus: pUncounted,
+        percentage: pPct,
+      };
+    });
+
+    return {
+      count_round_id: roundId,
+      round_id: roundId,
+      total_skus: totalSkus,
+      counted_skus: countedSkus,
+      uncounted_skus: uncountedSkus,
+      percentage: percentage,
+      difference_skus: overCount + underCount,
+      matched_skus: matchedCount,
+      over_skus: overCount,
+      under_skus: underCount,
+      recounted_skus: recountedSkus,
+      plants: plantProgressList,
+    };
+  }, [effectiveRound, items, counts, effectivePlants]);
+
   if (!currentUser) {
     return (
       <LoginView
@@ -498,7 +579,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
         currentUser={currentUser}
         users={users}
         onSelectUser={handleSelectUser}
-        uncountedCount={progress ? progress.uncounted_skus : 0}
+        uncountedCount={effectiveProgress.uncounted_skus}
         hideNav={Boolean(selectedItem)}
         onOpenExport={() => setExportModalOpen(true)}
         onOpenScan={() => setScannerOpen(true)}
@@ -529,8 +610,8 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
           <HomeView
             currentUser={currentUser}
             activeRound={effectiveRound}
-            progress={progress}
-            plants={plants}
+            progress={effectiveProgress}
+            plants={effectivePlants}
             totalItemCount={items.length}
             onEnterRound={() => {
               setCurrentTab("count");
@@ -576,8 +657,8 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
             ) : (
               <CountRoundView
                 round={effectiveRound}
-                progress={progress}
-                plants={plants}
+                progress={effectiveProgress}
+                plants={effectivePlants}
                 items={items}
                 counts={counts}
                 selectedPlantId={selectedPlantId}
@@ -594,7 +675,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
         {currentTab === "stock" && (
           <StockView
             items={items}
-            plants={plants}
+            plants={effectivePlants}
             currentUser={currentUser}
             onAdjustStock={(item) => setAdjustingItem(item)}
             onCountItem={(item) => {
@@ -614,7 +695,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
             counts={counts}
             adjustments={adjustments}
             items={items}
-            plants={plants}
+            plants={effectivePlants}
             onOpenExport={() => setExportModalOpen(true)}
           />
         )}
@@ -627,7 +708,7 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
             onOpenUserSwitcher={() => {}}
             onLogout={handleLogout}
             activeRound={effectiveRound}
-            progress={progress}
+            progress={effectiveProgress}
             items={items}
             onOpenAddProduct={() => {
               setEditingItem(null);

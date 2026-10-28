@@ -55,22 +55,39 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </div>
 
       {/* 2. Current Stock Quick Card */}
-      <div className="rounded-3xl bg-slate-900 text-white p-4.5 shadow-md space-y-3">
+      <div className="rounded-3xl bg-linear-to-br from-slate-900 via-slate-900 to-slate-800 text-white p-4.5 shadow-md space-y-3 border border-slate-800">
         <div className="flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-400 block">
-              Stock สินค้าทั้งหมดในระบบ
+              Stock สินค้าคอนกรีต KCON ทั้งหมด
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-3xl font-black text-white">
-                {formatNumber(totalItemCount || 64)}
+                {formatNumber(totalItemCount)}
               </span>
               <span className="text-xs font-bold text-slate-400">รายการ (SKU)</span>
             </div>
           </div>
-          <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full">
+          <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Realtime Sync
           </span>
+        </div>
+
+        {/* Quick summary mini-stats */}
+        <div className="grid grid-cols-3 gap-2 py-2 px-3 rounded-2xl bg-white/5 border border-white/10 text-center">
+          <div>
+            <span className="text-[10px] text-slate-400 block font-medium">นับแล้ว</span>
+            <span className="text-sm font-black text-emerald-400">{progress?.counted_skus ?? 0} SKU</span>
+          </div>
+          <div className="border-x border-white/10">
+            <span className="text-[10px] text-slate-400 block font-medium">ยังไม่นับ</span>
+            <span className="text-sm font-black text-amber-400">{progress?.uncounted_skus ?? totalItemCount} SKU</span>
+          </div>
+          <div>
+            <span className="text-[10px] text-slate-400 block font-medium">ความคืบหน้า</span>
+            <span className="text-sm font-black text-blue-400">{progress?.percentage ?? 0}%</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">

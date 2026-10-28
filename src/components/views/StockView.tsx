@@ -46,20 +46,34 @@ export const StockView: React.FC<StockViewProps> = ({
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const [selectedPlant, setSelectedPlant] = useState<number | "ALL">("ALL");
-  const [selectedCategory, setSelectedCategory] = useState<"ALL" | "raw_material" | "finished_goods">("ALL");
+  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
 
   const isAdmin = currentUser.role === "ADMIN";
+
+  // Category counts and definitions for KCON concrete products
+  const categoryOptions = useMemo(() => {
+    return [
+      { id: "ALL", label: "ทั้งหมด", count: items.length },
+      { id: "slabs", label: "แผ่นพื้น Plank/HC", count: items.filter(i => i.category === "slabs").length },
+      { id: "pipes", label: "ท่อระบายน้ำ", count: items.filter(i => i.category === "pipes").length },
+      { id: "poles", label: "เสาไฟฟ้า", count: items.filter(i => i.category === "poles").length },
+      { id: "piles", label: "เสาเข็ม", count: items.filter(i => i.category === "piles").length },
+      { id: "walls", label: "ผนังกันดิน", count: items.filter(i => i.category === "walls").length },
+    ].filter(c => c.id === "ALL" || c.count > 0);
+  }, [items]);
 
   // Filtered Items (Rule 23: 300ms Debounce)
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       // Search
       const q = debouncedSearch.toLowerCase().trim();
+      const locStr = (item.locations || []).map(l => `${l.lock_code} ${l.row_code}`).join(" ").toLowerCase();
       const matchesSearch =
         !q ||
         item.sku.toLowerCase().includes(q) ||
         item.name.toLowerCase().includes(q) ||
         item.size.toLowerCase().includes(q) ||
+        locStr.includes(q) ||
         (item.zone && item.zone.toLowerCase().includes(q));
 
       if (!matchesSearch) return false;
@@ -76,7 +90,7 @@ export const StockView: React.FC<StockViewProps> = ({
 
       return true;
     });
-  }, [items, search, selectedPlant, selectedCategory]);
+  }, [items, debouncedSearch, selectedPlant, selectedCategory]);
 
   return (
     <div className="space-y-3.5 animate-in fade-in duration-300">
@@ -196,23 +210,27 @@ export const StockView: React.FC<StockViewProps> = ({
       </div>
 
       {/* Category Tabs */}
-      <div className="flex items-center gap-1.5">
-        {[
-          { id: "ALL" as const, label: "ทั้งหมด" },
-          { id: "finished_goods" as const, label: "สินค้าสำเร็จรูป" },
-          { id: "raw_material" as const, label: "วัตถุดิบ" },
-        ].map((c) => (
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+        {categoryOptions.map((c) => (
           <button
             key={c.id}
             onClick={() => setSelectedCategory(c.id)}
             className={cn(
-              "flex-1 py-2 text-xs font-bold rounded-xl transition-all border text-center touch-press",
+              "whitespace-nowrap px-3 py-1.5 text-xs font-bold rounded-xl transition-all border text-center touch-press flex items-center gap-1.5",
               selectedCategory === c.id
                 ? "bg-slate-900 text-white border-slate-900 shadow-xs"
                 : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
             )}
           >
-            {c.label}
+            <span>{c.label}</span>
+            <span
+              className={cn(
+                "px-1.5 py-0.2 rounded-full text-[10px] font-mono",
+                selectedCategory === c.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+              )}
+            >
+              {c.count}
+            </span>
           </button>
         ))}
       </div>
@@ -227,6 +245,10 @@ export const StockView: React.FC<StockViewProps> = ({
           </div>
         ) : (
           filteredItems.map((item) => {
+            const locSummary = (item.locations || []).map((l) => `${l.lock_code}/${l.row_code}`).join(", ");
+            const hasLocations = Boolean(locSummary);
+            const isZeroStock = item.current_quantity === 0;
+
             return (
               <div
                 key={item.id}
@@ -234,18 +256,21 @@ export const StockView: React.FC<StockViewProps> = ({
               >
                 {/* Meta Header */}
                 <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-xs font-black px-2 py-0.5 rounded-md bg-slate-900 text-white">
                       {item.sku}
                     </span>
                     <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
                       <MapPin className="h-3 w-3 text-slate-400" />
-                      โรง {item.plant_id} • {item.zone}
+                      โรง {item.plant_id}{hasLocations ? ` • ${locSummary}` : (item.zone ? ` • ${item.zone}` : "")}
                     </span>
                   </div>
 
-                  <Badge variant={item.category === "raw_material" ? "amber" : "info"} className="text-[10px] py-0 px-1.5">
-                    {item.category === "raw_material" ? "วัตถุดิบ" : "สินค้าสำเร็จ"}
+                  <Badge
+                    variant={isZeroStock ? "secondary" : "success"}
+                    className="text-[10px] py-0 px-1.5 font-bold"
+                  >
+                    {isZeroStock ? "รอเริ่มนับ" : "มีในสต๊อก"}
                   </Badge>
                 </div>
 
