@@ -6,7 +6,7 @@ import { InventoryItem } from "@/lib/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Printer, QrCode, Download, Copy, Check, Building2, MapPin } from "lucide-react";
+import { Printer, QrCode, Download, Copy, Check, Building2, MapPin, Share2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -22,14 +22,28 @@ export const ProductQrModal: React.FC<ProductQrModalProps> = ({
   onOpenChange,
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const [copied, setCopied] = useState(false);
+  const [copiedSku, setCopiedSku] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const printAreaRef = useRef<HTMLDivElement>(null);
+
+  const getProductUrl = (sku: string) => {
+    const baseOrigin =
+      typeof window !== "undefined" &&
+      window.location.origin &&
+      !window.location.hostname.includes("localhost") &&
+      !window.location.hostname.includes("127.0.0.1")
+        ? window.location.origin
+        : "https://store-app2.vercel.app";
+    return `${baseOrigin}/products/${encodeURIComponent(sku)}`;
+  };
 
   useEffect(() => {
     if (item && open) {
-      // Generate high-resolution QR code containing product SKU
-      QRCode.toDataURL(item.sku, {
-        width: 320,
+      // Generate high-resolution QR code containing direct warehouse product URL
+      // When scanned with any smartphone camera (iPhone, Android, LINE), it opens this product directly in KCON warehouse!
+      const productUrl = getProductUrl(item.sku);
+      QRCode.toDataURL(productUrl, {
+        width: 360,
         margin: 2,
         color: {
           dark: "#0f172a",
@@ -47,9 +61,17 @@ export const ProductQrModal: React.FC<ProductQrModalProps> = ({
 
   const handleCopySku = () => {
     navigator.clipboard.writeText(item.sku);
-    setCopied(true);
+    setCopiedSku(true);
     toast.success(`คัดลอกรหัส SKU "${item.sku}" แล้ว`);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopiedSku(false), 2000);
+  };
+
+  const handleCopyLink = () => {
+    const url = getProductUrl(item.sku);
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    toast.success("คัดลอกลิงก์ข้อมูลสินค้าในคลังแล้ว");
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   const handleDownloadQr = () => {
@@ -82,10 +104,10 @@ export const ProductQrModal: React.FC<ProductQrModalProps> = ({
             </div>
             <div>
               <DialogTitle className="text-base font-black text-slate-900 leading-tight">
-                ป้าย QR Code ประจำสินค้า
+                ป้าย QR Code ประจำสินค้าในคลัง
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                สแกนด้วยสมาร์ทโฟนเพื่อตรวจสอบสต็อกและเริ่มตรวจนับได้ทันที
+                สแกนด้วยกล้องมือถือเพื่อเปิดข้อมูลสินค้าในคลัง KCON ทันที
               </DialogDescription>
             </div>
           </div>
@@ -173,33 +195,46 @@ export const ProductQrModal: React.FC<ProductQrModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-3 gap-2 pt-1">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCopySku}
-              className="h-11 rounded-2xl text-xs font-bold border-slate-200"
-            >
-              {copied ? <Check className="h-4 w-4 mr-1 text-emerald-600" /> : <Copy className="h-4 w-4 mr-1" />}
-              {copied ? "คัดลอกแล้ว" : "ก๊อปปี้ SKU"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleDownloadQr}
-              className="h-11 rounded-2xl text-xs font-bold border-slate-200"
-            >
-              <Download className="h-4 w-4 mr-1 text-blue-600" />
-              บันทึกภาพ
-            </Button>
-            <Button
-              type="button"
-              onClick={handlePrint}
-              className="h-11 rounded-2xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
-            >
-              <Printer className="h-4 w-4 mr-1" />
-              พิมพ์ป้าย
-            </Button>
+          <div className="space-y-2 pt-1">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCopyLink}
+                className="h-11 rounded-2xl text-xs font-bold border-slate-200"
+              >
+                {copiedLink ? <Check className="h-4 w-4 mr-1 text-emerald-600" /> : <Share2 className="h-4 w-4 mr-1 text-blue-600" />}
+                {copiedLink ? "คัดลอกลิงก์แล้ว" : "คัดลอกลิงก์สินค้า"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCopySku}
+                className="h-11 rounded-2xl text-xs font-bold border-slate-200"
+              >
+                {copiedSku ? <Check className="h-4 w-4 mr-1 text-emerald-600" /> : <Copy className="h-4 w-4 mr-1" />}
+                {copiedSku ? "คัดลอกแล้ว" : "ก๊อปปี้ SKU"}
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDownloadQr}
+                className="h-11 rounded-2xl text-xs font-bold border-slate-200"
+              >
+                <Download className="h-4 w-4 mr-1 text-emerald-600" />
+                บันทึกภาพ QR
+              </Button>
+              <Button
+                type="button"
+                onClick={handlePrint}
+                className="h-11 rounded-2xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
+              >
+                <Printer className="h-4 w-4 mr-1" />
+                พิมพ์ป้าย
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

@@ -188,6 +188,87 @@ export const getProductDetail = cache(
   }
 );
 
+export const getProductBySku = cache(
+  async (sku: string): Promise<InventoryItem | null> => {
+    if (!sku) return null;
+    const cleanSku = decodeURIComponent(sku).trim();
+
+    if (!isDatabaseConfigured || !db) {
+      const items = await DataProvider.getItems();
+      return (
+        items.find((i) => i.sku.toUpperCase() === cleanSku.toUpperCase()) || null
+      );
+    }
+
+    try {
+      const prod = await db.query.products.findFirst({
+        where: ilike(schema.products.sku, cleanSku),
+        with: {
+          locations: {
+            with: {
+              storageLocation: true,
+            },
+          },
+        },
+      });
+
+      if (!prod) {
+        const items = await DataProvider.getItems();
+        return (
+          items.find((i) => i.sku.toUpperCase() === cleanSku.toUpperCase()) || null
+        );
+      }
+
+      const formattedLocations = (prod.locations || []).map((pl) => ({
+        id: pl.id,
+        inventory_item_id: prod.id,
+        storage_location_id: pl.storageLocationId,
+        lock_code: pl.storageLocation?.lockCode || "A1",
+        row_code: pl.storageLocation?.rowCode || "1",
+        expected_quantity: pl.expectedQuantity,
+        source_type: "SYSTEM" as const,
+      }));
+
+      const sizeStr = [
+        prod.heightValue ? `สูง ${prod.heightValue} ${prod.heightUnit || "ม."}` : "",
+        prod.widthValue ? `กว้าง ${prod.widthValue} ${prod.widthUnit || "นิ้ว"}` : "",
+        prod.lengthValue ? `ยาว ${prod.lengthValue} ${prod.lengthUnit || "ม."}` : "",
+      ]
+        .filter(Boolean)
+        .join(" ") || "-";
+
+      return {
+        id: prod.id,
+        sku: prod.sku,
+        name: prod.name,
+        category: (prod.categoryId as ItemCategory) || "finished_goods",
+        plant_id: prod.plantId || 1,
+        size: sizeStr,
+        unit: prod.stockUnitId || "ต้น",
+        current_quantity: prod.currentQuantity,
+        locations: formattedLocations,
+        image_url: prod.imageUrl || undefined,
+        variant: prod.variant || "-",
+        height: prod.heightValue ? `${prod.heightValue} ${prod.heightUnit || "ม."}` : undefined,
+        width: prod.widthValue ? `${prod.widthValue} ${prod.widthUnit || "นิ้ว"}` : undefined,
+        length: prod.lengthValue ? `${prod.lengthValue} ${prod.lengthUnit || "ม."}` : undefined,
+        last_counted_at: prod.lastCountedAt ? prod.lastCountedAt.toISOString() : undefined,
+        last_counted_by: prod.lastCountedBy || undefined,
+        status: prod.isActive ? "ACTIVE" : "INACTIVE",
+        is_active: prod.isActive,
+        created_at: prod.createdAt.toISOString(),
+        updated_at: prod.updatedAt.toISOString(),
+      };
+    } catch (err) {
+      console.warn("getProductBySku query fallback:", err);
+      const items = await DataProvider.getItems();
+      return (
+        items.find((i) => i.sku.toUpperCase() === cleanSku.toUpperCase()) || null
+      );
+    }
+  }
+);
+
 export const getProductCurrentStock = cache(
   async (productId: string) => {
     if (!isDatabaseConfigured || !db) {

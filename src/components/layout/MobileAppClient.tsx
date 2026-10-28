@@ -195,6 +195,32 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
     };
   }, [refreshData]);
 
+  // Handle URL Deep Links: e.g. /?sku=FP-250-18 or /?scan=1
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const skuParam = searchParams.get("sku");
+    const scanParam = searchParams.get("scan");
+
+    if (scanParam === "1" || scanParam === "true") {
+      setScannerOpen(true);
+    }
+
+    if (skuParam && items.length > 0) {
+      const cleanSku = decodeURIComponent(skuParam).trim().toUpperCase();
+      const targetItem = items.find((i) => i.sku.toUpperCase() === cleanSku);
+      if (targetItem) {
+        if (currentUser) {
+          setSelectedItem(targetItem);
+          setSelectedPlantId(targetItem.plant_id);
+          setCurrentTab("count");
+        } else {
+          setScannedItem(targetItem);
+        }
+      }
+    }
+  }, [items, currentUser]);
+
   // Initialize session cookie on mount (only in DEMO_MODE)
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_DEMO_MODE === "true" && currentUser?.email) {

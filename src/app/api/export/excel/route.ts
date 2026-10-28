@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, connection } from "next/server";
 import { getReportData, ReportQueryOptions } from "@/db/queries/reports";
 import { generateStockCountExcel } from "@/lib/export/excel-generator";
 import { getOptionalUser } from "@/lib/auth/server";
 
 export async function GET(req: NextRequest) {
+  await connection();
   try {
     const user = await getOptionalUser();
     if (!user) {

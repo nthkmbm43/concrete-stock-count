@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextResponse, connection } from "next/server";
 import ExcelJS from "exceljs";
 import { getOptionalUser } from "@/lib/auth/server";
 
 export async function GET() {
+  await connection();
   try {
     const user = await getOptionalUser();
     if (!user) {
