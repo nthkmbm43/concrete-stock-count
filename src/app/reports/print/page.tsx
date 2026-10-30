@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import { connection } from "next/server";
+import { redirect } from "next/navigation";
 import { getReportData, ReportQueryOptions } from "@/db/queries/reports";
 import { PrintToolbar } from "./PrintToolbar";
 import { getOptionalUser } from "@/lib/auth/server";
@@ -30,26 +31,16 @@ export default function ReportPrintPage({ searchParams }: PageProps) {
 async function PrintDocumentContent({ searchParams }: PageProps) {
   await connection();
   const user = await getOptionalUser();
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-8">
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center max-w-md">
-          <p className="text-base font-bold text-red-600 mb-2">401 ไม่ได้รับอนุญาต (Unauthorized)</p>
-          <p className="text-sm text-slate-600 mb-6">
-            กรุณาเข้าสู่ระบบผ่านแอปพลิเคชันก่อนเปิดดูเอกสารรายงานตรวจนับ
-          </p>
-          <a
-            href="/"
-            className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition"
-          >
-            กลับสู่หน้าหลัก
-          </a>
-        </div>
-      </div>
-    );
-  }
-
   const params = await searchParams;
+
+  if (!user) {
+    const qParams = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) {
+      if (typeof v === "string") qParams.set(k, v);
+    }
+    const currentUrl = `/reports/print${qParams.toString() ? `?${qParams.toString()}` : ""}`;
+    redirect(`/?redirect=${encodeURIComponent(currentUrl)}`);
+  }
 
   const scope = (params.scope as "current_stock" | "count_round") || "count_round";
   const roundId = (params.roundId as string) || undefined;

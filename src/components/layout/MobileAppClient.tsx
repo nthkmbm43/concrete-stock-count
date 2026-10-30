@@ -585,6 +585,15 @@ export function MobileAppClient({ initialData }: MobileAppClientProps) {
           setCurrentUser(user);
           DataProvider.setCurrentUser(user);
           refreshData();
+
+          if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const redirectUrl = params.get("redirect");
+            if (redirectUrl) {
+              window.location.href = redirectUrl;
+              return;
+            }
+          }
         }}
       />
     );

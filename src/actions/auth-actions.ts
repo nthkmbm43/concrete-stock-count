@@ -44,6 +44,16 @@ function applySetCookies(cookieStrings: string[], cookieStore: any) {
     }
 
     cookieStore.set(name, value, options);
+
+    // Also mirror to both secure and standard name to prevent any proxy/TLS naming mismatch
+    if (name === "better-auth.session_token") {
+      cookieStore.set("__Secure-better-auth.session_token", value, {
+        ...options,
+        secure: true,
+      });
+    } else if (name === "__Secure-better-auth.session_token") {
+      cookieStore.set("better-auth.session_token", value, options);
+    }
   }
 }
 
@@ -63,18 +73,21 @@ export async function loginDemoUserAction(email: string) {
 
   try {
     let cookieStore: any = null;
+    let reqHeaders: any = null;
     try {
       cookieStore = await cookies();
+      reqHeaders = await headers();
     } catch {
       // Non-request scope or test runner context
     }
 
-    // 1. Authenticate with Better Auth backend
+    // 1. Authenticate with Better Auth backend with headers
     const res = await auth.api.signInEmail({
       body: {
         email: email.toLowerCase().trim(),
         password: "Demo1234!",
       },
+      headers: reqHeaders || undefined,
       asResponse: true,
     });
 
@@ -138,8 +151,9 @@ export async function logoutUserAction() {
       headers: reqHeaders,
     });
 
-    // Clear session cookies
+    // Clear session cookies (both standard and secure prefixes)
     cookieStore.delete("better-auth.session_token");
+    cookieStore.delete("__Secure-better-auth.session_token");
 
     return { success: true };
   } catch (err: any) {
@@ -176,18 +190,21 @@ export async function loginUserAction(identifier: string, password: string) {
     }
 
     let cookieStore: any = null;
+    let reqHeaders: any = null;
     try {
       cookieStore = await cookies();
+      reqHeaders = await headers();
     } catch {
       // Non-request context
     }
 
-    // 1. Authenticate with Better Auth backend
+    // 1. Authenticate with Better Auth backend with incoming request headers
     const res = await auth.api.signInEmail({
       body: {
         email,
         password,
       },
+      headers: reqHeaders || undefined,
       asResponse: true,
     });
 

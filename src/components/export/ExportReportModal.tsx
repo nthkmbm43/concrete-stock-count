@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plant, CountRound } from "@/lib/types";
+import { toast } from "sonner";
 
 interface ExportReportModalProps {
   isOpen: boolean;
@@ -74,14 +75,32 @@ export function ExportReportModal({
       setExportingType("excel");
       const qs = buildQueryString();
       const url = `/api/export/excel?${qs}`;
+      const res = await fetch(url, { credentials: "include" });
+
+      if (res.status === 401) {
+        toast.error("กรุณาเข้าสู่ระบบก่อนดาวน์โหลดรายงาน (401)");
+        window.location.href = `/?redirect=${encodeURIComponent(`/reports/print?${qs}`)}`;
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(`ดาวน์โหลดไม่สำเร็จ (${res.status})`);
+      }
+
+      const blob = await res.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "");
+      link.href = downloadUrl;
+      link.download = `KCON-Stock-Report-${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success("ดาวน์โหลดไฟล์ Excel เรียบร้อยแล้ว");
+    } catch (err: any) {
+      toast.error(err.message || "เกิดข้อผิดพลาดในการดาวน์โหลด Excel");
     } finally {
-      setTimeout(() => setExportingType(null), 1200);
+      setTimeout(() => setExportingType(null), 800);
     }
   };
 
@@ -90,14 +109,32 @@ export function ExportReportModal({
       setExportingType("pdf");
       const qs = buildQueryString();
       const url = `/api/export/pdf?${qs}`;
+      const res = await fetch(url, { credentials: "include" });
+
+      if (res.status === 401) {
+        toast.error("กรุณาเข้าสู่ระบบก่อนดาวน์โหลดรายงาน (401)");
+        window.location.href = `/?redirect=${encodeURIComponent(`/reports/print?${qs}`)}`;
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(`ดาวน์โหลดไม่สำเร็จ (${res.status})`);
+      }
+
+      const blob = await res.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "");
+      link.href = downloadUrl;
+      link.download = `KCON-Stock-Report-${new Date().toISOString().slice(0, 10)}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success("ดาวน์โหลดไฟล์ PDF เรียบร้อยแล้ว");
+    } catch (err: any) {
+      toast.error(err.message || "เกิดข้อผิดพลาดในการดาวน์โหลด PDF");
     } finally {
-      setTimeout(() => setExportingType(null), 1200);
+      setTimeout(() => setExportingType(null), 800);
     }
   };
 

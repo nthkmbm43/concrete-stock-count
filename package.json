@@ -19,8 +19,9 @@
     "test:dal": "tsx --env-file=.env.local test/dal-auth-guard-test.ts",
     "test:import": "tsx --env-file=.env.local test/import-test.ts",
     "test:qr": "tsx --env-file=.env.local test/qr-barcode-test.ts",
+    "test:pages": "tsx --env-file=.env.local test/all-pages-navigation-test.ts",
     "test:e2e": "tsx --env-file=.env.local test/production-e2e-test.ts",
-    "test": "tsx --env-file=.env.local test/stock-count-test.ts && tsx --env-file=.env.local test/export-test.ts && tsx --env-file=.env.local test/branding-assets-test.ts && tsx --env-file=.env.local test/dal-auth-guard-test.ts && tsx --env-file=.env.local test/security-test.ts && tsx --env-file=.env.local test/import-test.ts && tsx --env-file=.env.local test/qr-barcode-test.ts && tsx --env-file=.env.local test/production-e2e-test.ts"
+    "test": "tsx --env-file=.env.local test/stock-count-test.ts && tsx --env-file=.env.local test/export-test.ts && tsx --env-file=.env.local test/branding-assets-test.ts && tsx --env-file=.env.local test/dal-auth-guard-test.ts && tsx --env-file=.env.local test/security-test.ts && tsx --env-file=.env.local test/import-test.ts && tsx --env-file=.env.local test/qr-barcode-test.ts && tsx --env-file=.env.local test/all-pages-navigation-test.ts && tsx --env-file=.env.local test/production-e2e-test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.0",

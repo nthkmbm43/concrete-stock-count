@@ -2,7 +2,7 @@ import { cache } from "react";
 import { headers, cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db, schema, isDatabaseConfigured } from "@/db";
-import { eq } from "drizzle-orm";
+import { eq, and, or, gt } from "drizzle-orm";
 import {
   UnauthorizedError,
   ForbiddenError,
@@ -11,15 +11,60 @@ import {
 
 /**
  * Reads and verifies the active Better Auth session from incoming request headers.
- * Returns null if no valid session is present.
+ * Includes multi-layer fallback to verify cookies directly against the session database,
+ * preventing any proxy, TLS, or cookie prefix (__Secure-) mismatches.
  */
 export const getServerSession = cache(async () => {
   try {
     const reqHeaders = await headers();
-    const session = await auth.api.getSession({
+    let session = await auth.api.getSession({
       headers: reqHeaders,
     });
-    return session;
+    if (session && session.user && session.session) {
+      return session;
+    }
+
+    // Resilient fallback: Support both __Secure- and un-prefixed session token cookies
+    const cookieStore = await cookies();
+    const token =
+      cookieStore.get("__Secure-better-auth.session_token")?.value ||
+      cookieStore.get("better-auth.session_token")?.value;
+
+    if (token && db && isDatabaseConfigured) {
+      // In Better Auth, token may be signed: "rawToken.signature"
+      const rawToken = token.includes(".") ? token.split(".")[0] : token;
+
+      const [foundSession] = await db
+        .select()
+        .from(schema.session)
+        .where(
+          and(
+            or(
+              eq(schema.session.token, token),
+              eq(schema.session.token, rawToken)
+            ),
+            gt(schema.session.expiresAt, new Date())
+          )
+        )
+        .limit(1);
+
+      if (foundSession) {
+        const [foundUser] = await db
+          .select()
+          .from(schema.user)
+          .where(eq(schema.user.id, foundSession.userId))
+          .limit(1);
+
+        if (foundUser) {
+          return {
+            user: foundUser,
+            session: foundSession,
+          } as any;
+        }
+      }
+    }
+
+    return null;
   } catch (err) {
     console.error("Error reading server session from Better Auth:", err);
     return null;
