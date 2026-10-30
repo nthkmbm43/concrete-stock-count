@@ -263,7 +263,7 @@ export async function GET(req: NextRequest) {
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "Content-Disposition":
           'attachment; filename="kcon-stock-import-template.xlsx"; filename*=UTF-8\'\'kcon-stock-import-template.xlsx',
-        "Cache-Control": "public, max-age=3600",
+        "Cache-Control": "no-store, no-cache, must-revalidate, private",
       },
     });
   } catch (error: any) {
