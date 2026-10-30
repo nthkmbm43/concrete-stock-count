@@ -4,6 +4,7 @@ import { getOptionalUser } from "@/lib/auth/server";
 
 export async function GET(req: NextRequest) {
   await connection();
+  const _url = new URL(req.url);
   try {
     const user = await getOptionalUser();
     if (!user) {
