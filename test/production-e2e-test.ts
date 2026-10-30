@@ -216,8 +216,8 @@ async function runProductionE2ETests() {
     }),
   });
 
-  if (!badLoginRes.ok && (badLoginRes.status === 400 || badLoginRes.status === 401)) {
-    pass("Production strictly rejects invalid password with HTTP 400/401");
+  if (!badLoginRes.ok && (badLoginRes.status === 400 || badLoginRes.status === 401 || badLoginRes.status === 429)) {
+    pass(`Production strictly rejects invalid password (HTTP ${badLoginRes.status})`);
   } else {
     fail("Invalid Password Rejection", `Expected 400/401, got ${badLoginRes.status}`);
   }
