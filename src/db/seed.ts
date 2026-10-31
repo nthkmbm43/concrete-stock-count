@@ -2,10 +2,10 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
-import { resetProductionToRealKcon } from "../../scripts/reset-production-kcon";
+import { seedFactoryActualStock } from "../../scripts/seed-factory-actual-stock";
 
 export async function runSeed() {
-  await resetProductionToRealKcon();
+  await seedFactoryActualStock();
 }
 
 if (process.argv[1]?.includes("seed")) {

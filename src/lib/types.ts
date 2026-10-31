@@ -27,7 +27,9 @@ export type ItemCategory =
   | "pipes"
   | "poles"
   | "piles"
-  | "walls";
+  | "walls"
+  | "fences"
+  | "hardscape";
 export type ItemStatus = "ACTIVE" | "INACTIVE";
 
 // Storage Position (Plant, Lock, Row)

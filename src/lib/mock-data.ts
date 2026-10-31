@@ -30,475 +30,2990 @@ export const MOCK_USERS: UserProfile[] = [
 export const MOCK_PLANTS: Plant[] = [
   {
     id: 1,
-    name: "โรง 1 คลังวัตถุดิบ",
+    name: "โรง 1 (ท่อระบายน้ำ คสล. และบ่อพักสำเร็จรูป)",
     code: "PLANT-1",
-    description: "ปูน, หิน, ทราย, เหล็กเส้น, ลวดอัดแรง, น้ำยาผสม",
-    total_skus: 125,
+    description: "โรงงานผลิตและลานจัดเก็บท่อคอนกรีตเสริมเหล็ก คสล. ทุกขนาด บ่อพักน้ำ และฝาบ่อ",
+    total_skus: 10,
   },
   {
     id: 2,
-    name: "โรง 2 คลังสินค้า",
+    name: "โรง 2 (เสาเข็มคอนกรีตอัดแรง เสาไฟฟ้า และเสารั้ว)",
     code: "PLANT-2",
-    description: "โรงผลิต + เก็บเสารั้ว, เสาไอ, เสาเข็มคอนกรีตอัดแรง",
-    total_skus: 75,
+    description: "โรงงานผลิตและลานเก็บเสาเข็มไอ เสาเข็มสี่เหลี่ยม เสาไฟฟ้าแรงสูง/แรงต่ำ และเสารั้วลวดหนาม",
+    total_skus: 41,
   },
   {
     id: 3,
-    name: "โรง 3 ผลิตภัณฑ์สำเร็จรูป",
+    name: "โรง 3 (แผ่นพื้นคอนกรีตอัดแรง Solid Plank และ Hollow Core)",
     code: "PLANT-3",
-    description: "โรงผลิต + แผ่นพื้นสำเร็จรูป Plank, Hollow core",
-    total_skus: 96,
+    description: "โรงงานผลิตแผ่นพื้นสำเร็จรูปแบบตัน ท้องเรียบ จัดเก็บแยกตามกอง (กอง 1 - 33, ชายคา, ด้านใน, รถไฟ, แพ 3-4)",
+    total_skus: 126,
   },
   {
     id: 4,
-    name: "โรง 4 สินค้าภายนอก",
+    name: "โรง 4 (ผนังกันดิน ขอบคันหิน คอนกรีตแบริเออร์ และอิฐบล็อก)",
     code: "PLANT-4",
-    description: "โรงผลิต + แผ่นผนังกันดิน L-Wall, ท่อ คสล., บ่อพัก",
-    total_skus: 110,
+    description: "โรงงานผลิตกำแพงกันดินตัวแอล ขอบคันหินฟุตบาท คอนกรีตแบริเออร์ อิฐบล็อก มอก. และแผ่นทางเท้า",
+    total_skus: 6,
   },
-];
-
-export const MOCK_STORAGE_LOCATIONS: StorageLocation[] = [
-  { id: "loc-a3-6", plant_id: 2, lock_code: "A3", row_code: "6", is_active: true, description: "ลานเสารั้ว โซนทิศเหนือ" },
-  { id: "loc-b3-2", plant_id: 2, lock_code: "B3", row_code: "2", is_active: true, description: "ลานเสารั้ว กองสำรองกลาง" },
-  { id: "loc-b5-1", plant_id: 2, lock_code: "B5", row_code: "1", is_active: true, description: "ลานเสารั้ว โซนทิศใต้ติดทางออก" },
-  { id: "loc-c2-3", plant_id: 2, lock_code: "C2", row_code: "3", is_active: true, description: "ลานจัดส่งชั่วคราว" },
-  { id: "loc-a1-1", plant_id: 1, lock_code: "S1", row_code: "1", is_active: true, description: "ไซโลปูนซีเมนต์ A" },
-  { id: "loc-a1-2", plant_id: 1, lock_code: "Y1", row_code: "1", is_active: true, description: "ลานทรายหยาบ" },
-  { id: "loc-p3-1", plant_id: 3, lock_code: "P1", row_code: "3", is_active: true, description: "ลานแผ่นพื้น โซน 1" },
-  { id: "loc-p3-2", plant_id: 3, lock_code: "P2", row_code: "1", is_active: true, description: "ลานแผ่นพื้น โซน 2" },
-  { id: "loc-p4-1", plant_id: 4, lock_code: "W1", row_code: "2", is_active: true, description: "ลานผนังกันดิน L-Wall" },
 ];
 
 export const MOCK_ROUNDS: CountRound[] = [
   {
-    id: "round-oct-2569",
-    name: "รอบนับประจำเดือน ตุลาคม 2569",
-    title: "รอบนับประจำเดือน ตุลาคม 2569",
+    id: "round-kcon-2569",
+    name: "รอบตรวจนับสต๊อกสินค้า KCON ปี 2569",
+    title: "รอบตรวจนับสต๊อกสินค้า KCON ปี 2569",
     type: "MONTHLY",
     count_type: "MONTHLY",
     start_date: "2026-10-01",
-    end_date: "2026-10-31",
+    end_date: "2026-11-30",
     status: "OPEN",
     plant_ids: [1, 2, 3, 4],
-    notes: "รอบตรวจนับสต๊อกสิ้นเดือนหลัก ครอบคลุมคลังวัตถุดิบและโรงผลิต 1-4",
+    notes: "รอบตรวจนับจริงตามเอกสารสต๊อกสินค้า ปี 2569 ครอบคลุมลานแผ่นพื้นตัน 33 กอง และโรงผลิต 1-4",
     created_at: "2026-10-01T08:00:00Z",
-  },
-  {
-    id: "round-recount-p2",
-    name: "ตรวจสต๊อกเพิ่มเติม โรง 2 (เสารั้ว)",
-    title: "ตรวจสต๊อกเพิ่มเติม โรง 2 (เสารั้ว)",
-    type: "WEEKLY",
-    count_type: "WEEKLY",
-    start_date: "2026-10-24",
-    end_date: "2026-10-28",
-    status: "OPEN",
-    plant_ids: [2],
-    notes: "สุ่มตรวจความถูกต้องเสารั้วคอนกรีตอัดแรงรุ่นขายดี",
-    created_at: "2026-10-24T08:00:00Z",
-  },
-  {
-    id: "round-sep-2569",
-    name: "รอบนับประจำเดือน กันยายน 2569",
-    title: "รอบนับประจำเดือน กันยายน 2569",
-    type: "MONTHLY",
-    count_type: "MONTHLY",
-    start_date: "2026-09-01",
-    end_date: "2026-09-30",
-    status: "CLOSED",
-    plant_ids: [1, 2, 3, 4],
-    notes: "ปิดรอบแล้ว ยอดกระทบเข้าสมุดบัญชีเรียบร้อย",
-    created_at: "2026-09-01T08:00:00Z",
   },
 ];
 
-function generateItems(): InventoryItem[] {
+function generateItems(): { items: InventoryItem[]; storageLocations: StorageLocation[] } {
   const items: InventoryItem[] = [];
+  const locMap = new Map<string, StorageLocation>();
 
-  // Plant 2 - Featured Item from mockup and requirements!
-  // SKU: FP-250-18, เสารั้วคอนกรีต, สูง 2.50 ม., หน้า 18 นิ้ว, โรง 2
-  // Distributed across:
-  // - ล็อค A3 • แถว 6: 40 ต้น
-  // - ล็อค B3 • แถว 2: 20 ต้น
-  // - ล็อค B5 • แถว 1: 58 ต้น (ระบบ 58, นับได้ 60, ผลต่าง +2)
-  // รวมในระบบ: 118 ต้น
-  const fp250Item: InventoryItem = {
-    id: "p2-item-fp250",
-    sku: "FP-250-18",
-    name: "เสารั้วคอนกรีต",
-    category: "finished_goods",
-    variant: "หน้า 18 นิ้ว ลวด 4 เส้น",
-    size: "2.50 ม. • หน้า 18 นิ้ว",
-    height: "2.50 ม.",
-    width: "18 นิ้ว",
-    length: "2.50 ม.",
-    unit: "ต้น",
-    plant_id: 2,
-    zone: "ล็อค A3, B3, B5",
-    current_quantity: 118,
-    last_counted_at: "2026-10-26T09:15:00Z",
-    last_counted_by: "user-2",
-    last_counted_by_name: "วิชัย สุวรรณโชติ",
-    status: "ACTIVE",
-    is_active: true,
-    locations: [
-      { id: "loc-map-1", inventory_item_id: "p2-item-fp250", storage_location_id: "loc-a3-6", lock_code: "A3", row_code: "6", expected_quantity: 40 },
-      { id: "loc-map-2", inventory_item_id: "p2-item-fp250", storage_location_id: "loc-b3-2", lock_code: "B3", row_code: "2", expected_quantity: 20 },
-      { id: "loc-map-3", inventory_item_id: "p2-item-fp250", storage_location_id: "loc-b5-1", lock_code: "B5", row_code: "1", expected_quantity: 58 },
-    ],
-    created_at: "2026-09-01T00:00:00Z",
-    updated_at: "2026-10-26T09:15:00Z",
-  };
-  items.push(fp250Item);
-
-  const p2OtherFeatured = [
-    {
-      sku: "FP-200-15",
-      name: "เสารั้วคอนกรีต",
-      variant: "หน้า 15 นิ้ว ลวด 4 เส้น",
-      size: "2.00 ม. • หน้า 15 นิ้ว",
-      height: "2.00 ม.",
-      width: "15 นิ้ว",
-      unit: "ต้น",
-      qty: 95,
-      locations: [
-        { lock_code: "A1", row_code: "4", expected: 50 },
-        { lock_code: "A2", row_code: "1", expected: 45 },
-      ],
-    },
-    {
-      sku: "FP-300-18",
-      name: "เสารั้วคอนกรีต",
-      variant: "หน้า 18 นิ้ว ลวด 6 เส้น",
-      size: "3.00 ม. • หน้า 18 นิ้ว",
-      height: "3.00 ม.",
-      width: "18 นิ้ว",
-      unit: "ต้น",
-      qty: 84,
-      locations: [
-        { lock_code: "B1", row_code: "5", expected: 44 },
-        { lock_code: "B2", row_code: "3", expected: 40 },
-      ],
-    },
-    {
-      sku: "IB-150",
-      name: "เสาไอคอนกรีตอัดแรง (I-Beam)",
-      variant: "ไอ 15 ซม.",
-      size: "4.00 ม. • ไอ 15 ซม.",
-      height: "4.00 ม.",
-      width: "15 ซม.",
-      unit: "ต้น",
-      qty: 45,
-      locations: [
-        { lock_code: "C1", row_code: "1", expected: 45 },
-      ],
-    },
-    {
-      sku: "PL-018",
-      name: "เสาเข็มหกเหลี่ยมกลวง คอร. มอก.",
-      variant: "เส้นผ่านศูนย์กลาง 15 ซม.",
-      size: "4.00 ม. • Ø 15 ซม.",
-      height: "4.00 ม.",
-      width: "15 ซม.",
-      unit: "ท่อน",
-      qty: 150,
-      locations: [
-        { lock_code: "D1", row_code: "2", expected: 80 },
-        { lock_code: "D1", row_code: "3", expected: 70 },
-      ],
-    },
-  ];
-
-  p2OtherFeatured.forEach((item, idx) => {
-    items.push({
-      id: `p2-item-${idx + 2}`,
-      sku: item.sku,
-      name: item.name,
-      category: "finished_goods",
-      variant: item.variant,
-      size: item.size,
-      height: item.height,
-      width: item.width,
-      unit: item.unit,
-      plant_id: 2,
-      zone: item.locations.map((l) => `${l.lock_code}/${l.row_code}`).join(", "),
-      current_quantity: item.qty,
-      last_counted_at: "2026-10-25T10:00:00Z",
-      last_counted_by: "user-2",
-      last_counted_by_name: "วิชัย สุวรรณโชติ",
-      status: "ACTIVE",
-      is_active: true,
-      locations: item.locations.map((l, lIdx) => ({
-        id: `loc-map-p2-${idx}-${lIdx}`,
-        inventory_item_id: `p2-item-${idx + 2}`,
-        lock_code: l.lock_code,
-        row_code: l.row_code,
-        expected_quantity: l.expected,
-      })),
-      created_at: "2026-09-01T00:00:00Z",
-      updated_at: "2026-10-25T10:00:00Z",
-    });
-  });
-
-  // Fill Plant 2 up to 75
-  for (let i = p2OtherFeatured.length + 2; i <= 75; i++) {
-    const isUncounted = i > 65;
-    const lA = 20 + (i % 20);
-    const lB = 15 + ((i * 2) % 30);
-    items.push({
-      id: `p2-item-${i}`,
-      sku: `CP-P2-${i.toString().padStart(3, "0")}`,
-      name: `เสาคอนกรีตโครงสร้างพิเศษ รุ่น P2-${i}`,
-      category: "finished_goods",
-      variant: `มอก. ลวด ${(i % 3 + 4)} เส้น`,
-      size: `${(2.0 + (i % 8) * 0.5).toFixed(2)} ม. • หน้า 15 นิ้ว`,
-      height: `${(2.0 + (i % 8) * 0.5).toFixed(2)} ม.`,
-      width: "15 นิ้ว",
-      unit: "ต้น",
-      plant_id: 2,
-      zone: `ล็อค A${i % 5 + 1} แถว ${i % 4 + 1}`,
-      current_quantity: isUncounted ? 40 : lA + lB,
-      last_counted_at: isUncounted ? undefined : "2026-10-25T15:30:00Z",
-      last_counted_by: isUncounted ? undefined : "user-2",
-      last_counted_by_name: isUncounted ? undefined : "วิชัย สุวรรณโชติ",
-      status: "ACTIVE",
-      is_active: true,
-      locations: [
-        {
-          id: `loc-map-p2-${i}-1`,
-          inventory_item_id: `p2-item-${i}`,
-          lock_code: `A${i % 5 + 1}`,
-          row_code: `${i % 4 + 1}`,
-          expected_quantity: isUncounted ? 40 : lA + lB,
-        },
-      ],
-      created_at: "2026-09-01T00:00:00Z",
-      updated_at: "2026-10-25T15:30:00Z",
-    });
+  // Helper to ensure storage location
+  function ensureLoc(plantId: number, lockCode: string, rowCode: string = "1", desc: string = ""): string {
+    const locId = `loc-p${plantId}-${lockCode.replace(/\s+/g, "-")}`;
+    if (!locMap.has(locId)) {
+      locMap.set(locId, {
+        id: locId,
+        plant_id: plantId,
+        lock_code: lockCode,
+        row_code: rowCode,
+        description: desc || `จุดวางสต๊อก ${lockCode}`,
+        is_active: true,
+      });
+    }
+    return locId;
   }
 
-  // Plant 1: Raw Materials (125 items)
-  const rawMaterials = [
-    { sku: "RM-CEM-01", name: "ปูนซีเมนต์ปอร์ตแลนด์ Type 1 ตราช้าง", variant: "ถุง 50 กก.", size: "50 กก.", unit: "ถุง", qty: 2450, lock: "Sil-A", row: "1" },
-    { sku: "RM-CEM-02", name: "ปูนซีเมนต์ปอร์ตแลนด์ Type 3 (แข็งตัวเร็ว)", variant: "Bulk ไซโล", size: "1 ตัน", unit: "ตัน", qty: 45, lock: "Sil-B", row: "1" },
-    { sku: "RM-SND-01", name: "ทรายหยาบคัดเกรดล้างสะอาด", variant: "กองลานทราย", size: "1 คิว", unit: "คิว", qty: 380, lock: "Yard-1", row: "1" },
-    { sku: "RM-RCK-01", name: "หินปูนเบอร์ 1 (3/8 นิ้ว)", variant: "กองลานหิน", size: "1 คิว", unit: "คิว", qty: 420, lock: "Yard-2", row: "1" },
-    { sku: "RM-STL-09", name: "เหล็กเส้นกลม SR24 ขนาด 9 มม.", variant: "มัดละ 100 เส้น", size: "ยาว 10 ม.", unit: "เส้น", qty: 850, lock: "Steel-A", row: "2" },
-    { sku: "RM-PCW-04", name: "ลวดอัดแรง PC Wire ชนิดหยัก 4 มม.", variant: "ขด Coil ใหญ่", size: "ขด 1,000 กก.", unit: "ขด", qty: 18, lock: "Wire-1", row: "1" },
-  ];
-
-  rawMaterials.forEach((item, idx) => {
-    items.push({
-      id: `p1-item-${idx + 1}`,
-      sku: item.sku,
-      name: item.name,
-      category: "raw_material",
-      variant: item.variant,
-      size: item.size,
-      unit: item.unit,
-      plant_id: 1,
-      zone: `ล็อค ${item.lock} แถว ${item.row}`,
-      current_quantity: item.qty,
-      last_counted_at: "2026-10-25T11:30:00Z",
-      last_counted_by: "user-1",
-      last_counted_by_name: "สมชาย ใจมั่นคง",
-      status: "ACTIVE",
-      is_active: true,
-      locations: [
-        {
-          id: `loc-map-p1-${idx}`,
-          inventory_item_id: `p1-item-${idx + 1}`,
-          lock_code: item.lock,
-          row_code: item.row,
-          expected_quantity: item.qty,
-        },
-      ],
-      created_at: "2026-09-01T00:00:00Z",
-      updated_at: "2026-10-25T11:30:00Z",
-    });
-  });
-
-  for (let i = rawMaterials.length + 1; i <= 125; i++) {
-    items.push({
-      id: `p1-item-${i}`,
-      sku: `RM-MISC-${i.toString().padStart(3, "0")}`,
-      name: `วัสดุสิ้นเปลือง/อะไหล่แบบหล่อ รุ่น RM-${i}`,
-      category: "raw_material",
-      variant: "มาตรฐานคลัง",
-      size: `เบอร์ ${i % 10 + 1}`,
-      unit: i % 2 === 0 ? "ชิ้น" : "กล่อง",
-      plant_id: 1,
-      zone: `ล็อค S${i % 4 + 1} แถว 1`,
-      current_quantity: 50 + (i * 3) % 150,
-      last_counted_at: "2026-10-25T14:00:00Z",
-      last_counted_by: "user-1",
-      last_counted_by_name: "สมชาย ใจมั่นคง",
-      status: "ACTIVE",
-      is_active: true,
-      locations: [
-        {
-          id: `loc-map-p1-${i}`,
-          inventory_item_id: `p1-item-${i}`,
-          lock_code: `S${i % 4 + 1}`,
-          row_code: "1",
-          expected_quantity: 50 + (i * 3) % 150,
-        },
-      ],
-      created_at: "2026-09-01T00:00:00Z",
-      updated_at: "2026-10-25T14:00:00Z",
-    });
+  // 1. Slab Products (Plant 3)
+  const slabData = [
+  {
+    "sku": "SLAB-SP-90-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x0.90 ม. (ลวด 4 เส้น)",
+    "length": 0.9,
+    "wire": "4",
+    "totalQty": 5,
+    "locations": [
+      {
+        "pile": "1",
+        "lockCode": "กอง 1",
+        "qty": 5
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-265-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.65 ม. (ลวด 4 เส้น)",
+    "length": 2.65,
+    "wire": "4",
+    "totalQty": 83,
+    "locations": [
+      {
+        "pile": "1",
+        "lockCode": "กอง 1",
+        "qty": 83
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-175-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.75 ม. (ลวด 4 เส้น)",
+    "length": 1.75,
+    "wire": "4",
+    "totalQty": 87,
+    "locations": [
+      {
+        "pile": "1",
+        "lockCode": "กอง 1",
+        "qty": 61
+      },
+      {
+        "pile": "15",
+        "lockCode": "กอง 15",
+        "qty": 26
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-195-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.95 ม. (ลวด 4 เส้น)",
+    "length": 1.95,
+    "wire": "4",
+    "totalQty": 145,
+    "locations": [
+      {
+        "pile": "1",
+        "lockCode": "กอง 1",
+        "qty": 49
+      },
+      {
+        "pile": "แพ4",
+        "lockCode": "แพ4",
+        "qty": 96
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-150-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.50 ม. (ลวด 4 เส้น)",
+    "length": 1.5,
+    "wire": "4",
+    "totalQty": 209,
+    "locations": [
+      {
+        "pile": "1",
+        "lockCode": "กอง 1",
+        "qty": 131
+      },
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 78
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-150-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.50 ม. (ลวด 5 เส้น)",
+    "length": 1.5,
+    "wire": "5",
+    "totalQty": 10,
+    "locations": [
+      {
+        "pile": "1",
+        "lockCode": "กอง 1",
+        "qty": 10
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-125-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.25 ม. (ลวด 4 เส้น)",
+    "length": 1.25,
+    "wire": "4",
+    "totalQty": 0,
+    "locations": [
+      {
+        "pile": "2",
+        "lockCode": "กอง 2",
+        "qty": 0
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-145-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.45 ม. (ลวด 4 เส้น)",
+    "length": 1.45,
+    "wire": "4",
+    "totalQty": 94,
+    "locations": [
+      {
+        "pile": "2",
+        "lockCode": "กอง 2",
+        "qty": 94
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-145-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.45 ม. (ลวด 5 เส้น)",
+    "length": 1.45,
+    "wire": "5",
+    "totalQty": 18,
+    "locations": [
+      {
+        "pile": "2",
+        "lockCode": "กอง 2",
+        "qty": 18
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-165-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.65 ม. (ลวด 4 เส้น)",
+    "length": 1.65,
+    "wire": "4",
+    "totalQty": 42,
+    "locations": [
+      {
+        "pile": "2",
+        "lockCode": "กอง 2",
+        "qty": 42
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-185-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.85 ม. (ลวด 4 เส้น)",
+    "length": 1.85,
+    "wire": "4",
+    "totalQty": 23,
+    "locations": [
+      {
+        "pile": "2",
+        "lockCode": "กอง 2",
+        "qty": 23
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-220-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.20 ม. (ลวด 7 เส้น)",
+    "length": 2.2,
+    "wire": "7",
+    "totalQty": 3,
+    "locations": [
+      {
+        "pile": "3",
+        "lockCode": "กอง 3",
+        "qty": 3
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-215-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.15 ม. (ลวด 4 เส้น)",
+    "length": 2.15,
+    "wire": "4",
+    "totalQty": 116,
+    "locations": [
+      {
+        "pile": "3",
+        "lockCode": "กอง 3",
+        "qty": 116
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-220-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.20 ม. (ลวด 5 เส้น)",
+    "length": 2.2,
+    "wire": "5",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "3",
+        "lockCode": "กอง 3",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-200-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.00 ม. (ลวด 4 เส้น)",
+    "length": 2,
+    "wire": "4",
+    "totalQty": 320,
+    "locations": [
+      {
+        "pile": "3",
+        "lockCode": "กอง 3",
+        "qty": 108
+      },
+      {
+        "pile": "15",
+        "lockCode": "กอง 15",
+        "qty": 146
+      },
+      {
+        "pile": "22",
+        "lockCode": "กอง 22",
+        "qty": 18
+      },
+      {
+        "pile": "แพ4",
+        "lockCode": "แพ4",
+        "qty": 48
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-200-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.00 ม. (ลวด 5 เส้น)",
+    "length": 2,
+    "wire": "5",
+    "totalQty": 8,
+    "locations": [
+      {
+        "pile": "3",
+        "lockCode": "กอง 3",
+        "qty": 2
+      },
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-215-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.15 ม. (ลวด 5 เส้น)",
+    "length": 2.15,
+    "wire": "5",
+    "totalQty": 30,
+    "locations": [
+      {
+        "pile": "3",
+        "lockCode": "กอง 3",
+        "qty": 30
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-128-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.28 ม. (ลวด 4 เส้น)",
+    "length": 1.28,
+    "wire": "4",
+    "totalQty": 3,
+    "locations": [
+      {
+        "pile": "4",
+        "lockCode": "กอง 4",
+        "qty": 3
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-195-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.95 ม. (ลวด 5 เส้น)",
+    "length": 1.95,
+    "wire": "5",
+    "totalQty": 8,
+    "locations": [
+      {
+        "pile": "4",
+        "lockCode": "กอง 4",
+        "qty": 2
+      },
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-295-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.95 ม. (ลวด 5 เส้น)",
+    "length": 2.95,
+    "wire": "5",
+    "totalQty": 257,
+    "locations": [
+      {
+        "pile": "4",
+        "lockCode": "กอง 4",
+        "qty": 85
+      },
+      {
+        "pile": "11",
+        "lockCode": "กอง 11",
+        "qty": 58
+      },
+      {
+        "pile": "14",
+        "lockCode": "กอง 14",
+        "qty": 114
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-295-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.95 ม. (ลวด 4 เส้น)",
+    "length": 2.95,
+    "wire": "4",
+    "totalQty": 727,
+    "locations": [
+      {
+        "pile": "4",
+        "lockCode": "กอง 4",
+        "qty": 140
+      },
+      {
+        "pile": "11",
+        "lockCode": "กอง 11",
+        "qty": 102
+      },
+      {
+        "pile": "20",
+        "lockCode": "กอง 20",
+        "qty": 131
+      },
+      {
+        "pile": "26",
+        "lockCode": "กอง 26",
+        "qty": 234
+      },
+      {
+        "pile": "28",
+        "lockCode": "กอง 28",
+        "qty": 120
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-115-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.15 ม. (ลวด 4 เส้น)",
+    "length": 1.15,
+    "wire": "4",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "5",
+        "lockCode": "กอง 5",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-100-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.00 ม. (ลวด 4 เส้น)",
+    "length": 1,
+    "wire": "4",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "5",
+        "lockCode": "กอง 5",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-105-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.05 ม. (ลวด 5 เส้น)",
+    "length": 1.05,
+    "wire": "5",
+    "totalQty": 24,
+    "locations": [
+      {
+        "pile": "ด้านใน",
+        "lockCode": "ด้านใน",
+        "qty": 24
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-115-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.15 ม. (ลวด 5 เส้น)",
+    "length": 1.15,
+    "wire": "5",
+    "totalQty": 26,
+    "locations": [
+      {
+        "pile": "5",
+        "lockCode": "กอง 5",
+        "qty": 14
+      },
+      {
+        "pile": "ด้านใน",
+        "lockCode": "ด้านใน",
+        "qty": 12
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-100-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.00 ม. (ลวด 5 เส้น)",
+    "length": 1,
+    "wire": "5",
+    "totalQty": 13,
+    "locations": [
+      {
+        "pile": "5",
+        "lockCode": "กอง 5",
+        "qty": 7
+      },
+      {
+        "pile": "แพ3",
+        "lockCode": "แพ3",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-100-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.00 ม. (ลวด 6 เส้น)",
+    "length": 1,
+    "wire": "6",
+    "totalQty": 3,
+    "locations": [
+      {
+        "pile": "5",
+        "lockCode": "กอง 5",
+        "qty": 3
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-300-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.00 ม. (ลวด 5 เส้น)",
+    "length": 3,
+    "wire": "5",
+    "totalQty": 714,
+    "locations": [
+      {
+        "pile": "5",
+        "lockCode": "กอง 5",
+        "qty": 34
+      },
+      {
+        "pile": "10",
+        "lockCode": "กอง 10",
+        "qty": 374
+      },
+      {
+        "pile": "12",
+        "lockCode": "กอง 12",
+        "qty": 160
+      },
+      {
+        "pile": "25",
+        "lockCode": "กอง 25",
+        "qty": 146
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-200-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.00 ม. (ลวด 7 เส้น)",
+    "length": 2,
+    "wire": "7",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "5",
+        "lockCode": "กอง 5",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-215-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.15 ม. (ลวด 7 เส้น)",
+    "length": 2.15,
+    "wire": "7",
+    "totalQty": 48,
+    "locations": [
+      {
+        "pile": "5",
+        "lockCode": "กอง 5",
+        "qty": 48
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-395-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.95 ม. (ลวด 7 เส้น)",
+    "length": 3.95,
+    "wire": "7",
+    "totalQty": 312,
+    "locations": [
+      {
+        "pile": "6",
+        "lockCode": "กอง 6",
+        "qty": 102
+      },
+      {
+        "pile": "8",
+        "lockCode": "กอง 8",
+        "qty": 55
+      },
+      {
+        "pile": "13",
+        "lockCode": "กอง 13",
+        "qty": 121
+      },
+      {
+        "pile": "16",
+        "lockCode": "กอง 16",
+        "qty": 2
+      },
+      {
+        "pile": "31",
+        "lockCode": "กอง 31",
+        "qty": 32
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-395-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.95 ม. (ลวด 5 เส้น)",
+    "length": 3.95,
+    "wire": "5",
+    "totalQty": 1001,
+    "locations": [
+      {
+        "pile": "6",
+        "lockCode": "กอง 6",
+        "qty": 3
+      },
+      {
+        "pile": "13",
+        "lockCode": "กอง 13",
+        "qty": 201
+      },
+      {
+        "pile": "18",
+        "lockCode": "กอง 18",
+        "qty": 380
+      },
+      {
+        "pile": "24",
+        "lockCode": "กอง 24",
+        "qty": 153
+      },
+      {
+        "pile": "33",
+        "lockCode": "กอง 33",
+        "qty": 114
+      },
+      {
+        "pile": "แพ3",
+        "lockCode": "แพ3",
+        "qty": 150
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-350-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.50 ม. (ลวด 5 เส้น)",
+    "length": 3.5,
+    "wire": "5",
+    "totalQty": 462,
+    "locations": [
+      {
+        "pile": "6",
+        "lockCode": "กอง 6",
+        "qty": 218
+      },
+      {
+        "pile": "14",
+        "lockCode": "กอง 14",
+        "qty": 85
+      },
+      {
+        "pile": "24",
+        "lockCode": "กอง 24",
+        "qty": 129
+      },
+      {
+        "pile": "รถไฟ",
+        "lockCode": "รถไฟ",
+        "qty": 30
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-350-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.50 ม. (ลวด 7 เส้น)",
+    "length": 3.5,
+    "wire": "7",
+    "totalQty": 29,
+    "locations": [
+      {
+        "pile": "6",
+        "lockCode": "กอง 6",
+        "qty": 29
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-400-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x4.00 ม. (ลวด 7 เส้น)",
+    "length": 4,
+    "wire": "7",
+    "totalQty": 327,
+    "locations": [
+      {
+        "pile": "7",
+        "lockCode": "กอง 7",
+        "qty": 147
+      },
+      {
+        "pile": "13",
+        "lockCode": "กอง 13",
+        "qty": 96
+      },
+      {
+        "pile": "17",
+        "lockCode": "กอง 17",
+        "qty": 66
+      },
+      {
+        "pile": "31",
+        "lockCode": "กอง 31",
+        "qty": 18
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-400-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x4.00 ม. (ลวด 5 เส้น)",
+    "length": 4,
+    "wire": "5",
+    "totalQty": 726,
+    "locations": [
+      {
+        "pile": "7",
+        "lockCode": "กอง 7",
+        "qty": 136
+      },
+      {
+        "pile": "17",
+        "lockCode": "กอง 17",
+        "qty": 340
+      },
+      {
+        "pile": "21",
+        "lockCode": "กอง 21",
+        "qty": 250
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-345-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.45 ม. (ลวด 6 เส้น)",
+    "length": 3.45,
+    "wire": "6",
+    "totalQty": 48,
+    "locations": [
+      {
+        "pile": "7",
+        "lockCode": "กอง 7",
+        "qty": 48
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-395-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.95 ม. (ลวด 6 เส้น)",
+    "length": 3.95,
+    "wire": "6",
+    "totalQty": 294,
+    "locations": [
+      {
+        "pile": "8",
+        "lockCode": "กอง 8",
+        "qty": 291
+      },
+      {
+        "pile": "31",
+        "lockCode": "กอง 31",
+        "qty": 3
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-400-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x4.00 ม. (ลวด 6 เส้น)",
+    "length": 4,
+    "wire": "6",
+    "totalQty": 99,
+    "locations": [
+      {
+        "pile": "8",
+        "lockCode": "กอง 8",
+        "qty": 99
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-205-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.05 ม. (ลวด 4 เส้น)",
+    "length": 2.05,
+    "wire": "4",
+    "totalQty": 26,
+    "locations": [
+      {
+        "pile": "9",
+        "lockCode": "กอง 9",
+        "qty": 26
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-210-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.10 ม. (ลวด 4 เส้น)",
+    "length": 2.1,
+    "wire": "4",
+    "totalQty": 113,
+    "locations": [
+      {
+        "pile": "9",
+        "lockCode": "กอง 9",
+        "qty": 113
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-225-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.25 ม. (ลวด 4 เส้น)",
+    "length": 2.25,
+    "wire": "4",
+    "totalQty": 124,
+    "locations": [
+      {
+        "pile": "9",
+        "lockCode": "กอง 9",
+        "qty": 124
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-235-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.35 ม. (ลวด 4 เส้น)",
+    "length": 2.35,
+    "wire": "4",
+    "totalQty": 72,
+    "locations": [
+      {
+        "pile": "9",
+        "lockCode": "กอง 9",
+        "qty": 72
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-295-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.95 ม. (ลวด 6 เส้น)",
+    "length": 2.95,
+    "wire": "6",
+    "totalQty": 28,
+    "locations": [
+      {
+        "pile": "11",
+        "lockCode": "กอง 11",
+        "qty": 24
+      },
+      {
+        "pile": "28",
+        "lockCode": "กอง 28",
+        "qty": 4
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-250-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.50 ม. (ลวด 4 เส้น)",
+    "length": 2.5,
+    "wire": "4",
+    "totalQty": 542,
+    "locations": [
+      {
+        "pile": "11",
+        "lockCode": "กอง 11",
+        "qty": 130
+      },
+      {
+        "pile": "20",
+        "lockCode": "กอง 20",
+        "qty": 141
+      },
+      {
+        "pile": "27",
+        "lockCode": "กอง 27",
+        "qty": 175
+      },
+      {
+        "pile": "แพ4",
+        "lockCode": "แพ4",
+        "qty": 96
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-300-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.00 ม. (ลวด 4 เส้น)",
+    "length": 3,
+    "wire": "4",
+    "totalQty": 231,
+    "locations": [
+      {
+        "pile": "12",
+        "lockCode": "กอง 12",
+        "qty": 3
+      },
+      {
+        "pile": "19",
+        "lockCode": "กอง 19",
+        "qty": 120
+      },
+      {
+        "pile": "22",
+        "lockCode": "กอง 22",
+        "qty": 108
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-292-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.92 ม. (ลวด 5 เส้น)",
+    "length": 2.92,
+    "wire": "5",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "12",
+        "lockCode": "กอง 12",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-345-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.45 ม. (ลวด 5 เส้น)",
+    "length": 3.45,
+    "wire": "5",
+    "totalQty": 485,
+    "locations": [
+      {
+        "pile": "12",
+        "lockCode": "กอง 12",
+        "qty": 126
+      },
+      {
+        "pile": "19",
+        "lockCode": "กอง 19",
+        "qty": 47
+      },
+      {
+        "pile": "25",
+        "lockCode": "กอง 25",
+        "qty": 216
+      },
+      {
+        "pile": "รถไฟ",
+        "lockCode": "รถไฟ",
+        "qty": 48
+      },
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 48
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-365-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.65 ม. (ลวด 5 เส้น)",
+    "length": 3.65,
+    "wire": "5",
+    "totalQty": 38,
+    "locations": [
+      {
+        "pile": "14",
+        "lockCode": "กอง 14",
+        "qty": 38
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-385-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.85 ม. (ลวด 5 เส้น)",
+    "length": 3.85,
+    "wire": "5",
+    "totalQty": 82,
+    "locations": [
+      {
+        "pile": "14",
+        "lockCode": "กอง 14",
+        "qty": 82
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-385-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.85 ม. (ลวด 7 เส้น)",
+    "length": 3.85,
+    "wire": "7",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "14",
+        "lockCode": "กอง 14",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-245-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.45 ม. (ลวด 4 เส้น)",
+    "length": 2.45,
+    "wire": "4",
+    "totalQty": 213,
+    "locations": [
+      {
+        "pile": "15",
+        "lockCode": "กอง 15",
+        "qty": 150
+      },
+      {
+        "pile": "20",
+        "lockCode": "กอง 20",
+        "qty": 34
+      },
+      {
+        "pile": "29",
+        "lockCode": "กอง 29",
+        "qty": 29
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-450-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x4.50 ม. (ลวด 7 เส้น)",
+    "length": 4.5,
+    "wire": "7",
+    "totalQty": 147,
+    "locations": [
+      {
+        "pile": "16",
+        "lockCode": "กอง 16",
+        "qty": 84
+      },
+      {
+        "pile": "21",
+        "lockCode": "กอง 21",
+        "qty": 63
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-420-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x4.20 ม. (ลวด 7 เส้น)",
+    "length": 4.2,
+    "wire": "7",
+    "totalQty": 94,
+    "locations": [
+      {
+        "pile": "16",
+        "lockCode": "กอง 16",
+        "qty": 94
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-435-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x4.35 ม. (ลวด 7 เส้น)",
+    "length": 4.35,
+    "wire": "7",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "16",
+        "lockCode": "กอง 16",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-390-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.90 ม. (ลวด 5 เส้น)",
+    "length": 3.9,
+    "wire": "5",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "16",
+        "lockCode": "กอง 16",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-410-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x4.10 ม. (ลวด 7 เส้น)",
+    "length": 4.1,
+    "wire": "7",
+    "totalQty": 204,
+    "locations": [
+      {
+        "pile": "16",
+        "lockCode": "กอง 16",
+        "qty": 54
+      },
+      {
+        "pile": "31",
+        "lockCode": "กอง 31",
+        "qty": 150
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-300-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.00 ม. (ลวด 7 เส้น)",
+    "length": 3,
+    "wire": "7",
+    "totalQty": 61,
+    "locations": [
+      {
+        "pile": "19",
+        "lockCode": "กอง 19",
+        "qty": 61
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-325-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.25 ม. (ลวด 5 เส้น)",
+    "length": 3.25,
+    "wire": "5",
+    "totalQty": 77,
+    "locations": [
+      {
+        "pile": "19",
+        "lockCode": "กอง 19",
+        "qty": 77
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-325-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.25 ม. (ลวด 7 เส้น)",
+    "length": 3.25,
+    "wire": "7",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "19",
+        "lockCode": "กอง 19",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-245-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.45 ม. (ลวด 5 เส้น)",
+    "length": 2.45,
+    "wire": "5",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "20",
+        "lockCode": "กอง 20",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-190-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.90 ม. (ลวด 4 เส้น)",
+    "length": 1.9,
+    "wire": "4",
+    "totalQty": 45,
+    "locations": [
+      {
+        "pile": "20",
+        "lockCode": "กอง 20",
+        "qty": 45
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-190-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.90 ม. (ลวด 7 เส้น)",
+    "length": 1.9,
+    "wire": "7",
+    "totalQty": 7,
+    "locations": [
+      {
+        "pile": "20",
+        "lockCode": "กอง 20",
+        "qty": 7
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-500-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x5.00 ม. (ลวด 7 เส้น)",
+    "length": 5,
+    "wire": "7",
+    "totalQty": 52,
+    "locations": [
+      {
+        "pile": "21",
+        "lockCode": "กอง 21",
+        "qty": 52
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-280-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.80 ม. (ลวด 4 เส้น)",
+    "length": 2.8,
+    "wire": "4",
+    "totalQty": 79,
+    "locations": [
+      {
+        "pile": "22",
+        "lockCode": "กอง 22",
+        "qty": 79
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-130-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.30 ม. (ลวด 4 เส้น)",
+    "length": 1.3,
+    "wire": "4",
+    "totalQty": 71,
+    "locations": [
+      {
+        "pile": "22",
+        "lockCode": "กอง 22",
+        "qty": 71
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-135-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.35 ม. (ลวด 5 เส้น)",
+    "length": 1.35,
+    "wire": "5",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "22",
+        "lockCode": "กอง 22",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-130-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.30 ม. (ลวด 7 เส้น)",
+    "length": 1.3,
+    "wire": "7",
+    "totalQty": 48,
+    "locations": [
+      {
+        "pile": "22",
+        "lockCode": "กอง 22",
+        "qty": 48
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-260-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.60 ม. (ลวด 4 เส้น)",
+    "length": 2.6,
+    "wire": "4",
+    "totalQty": 44,
+    "locations": [
+      {
+        "pile": "23",
+        "lockCode": "กอง 23",
+        "qty": 44
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-270-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.70 ม. (ลวด 4 เส้น)",
+    "length": 2.7,
+    "wire": "4",
+    "totalQty": 126,
+    "locations": [
+      {
+        "pile": "23",
+        "lockCode": "กอง 23",
+        "qty": 126
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-270-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.70 ม. (ลวด 7 เส้น)",
+    "length": 2.7,
+    "wire": "7",
+    "totalQty": 4,
+    "locations": [
+      {
+        "pile": "23",
+        "lockCode": "กอง 23",
+        "qty": 4
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-270-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.70 ม. (ลวด 5 เส้น)",
+    "length": 2.7,
+    "wire": "5",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "23",
+        "lockCode": "กอง 23",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-275-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.75 ม. (ลวด 5 เส้น)",
+    "length": 2.75,
+    "wire": "5",
+    "totalQty": 21,
+    "locations": [
+      {
+        "pile": "23",
+        "lockCode": "กอง 23",
+        "qty": 21
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-275-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.75 ม. (ลวด 4 เส้น)",
+    "length": 2.75,
+    "wire": "4",
+    "totalQty": 72,
+    "locations": [
+      {
+        "pile": "23",
+        "lockCode": "กอง 23",
+        "qty": 72
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-315-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.15 ม. (ลวด 6 เส้น)",
+    "length": 3.15,
+    "wire": "6",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "23",
+        "lockCode": "กอง 23",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-315-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.15 ม. (ลวด 5 เส้น)",
+    "length": 3.15,
+    "wire": "5",
+    "totalQty": 21,
+    "locations": [
+      {
+        "pile": "23",
+        "lockCode": "กอง 23",
+        "qty": 21
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-375-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.75 ม. (ลวด 5 เส้น)",
+    "length": 3.75,
+    "wire": "5",
+    "totalQty": 25,
+    "locations": [
+      {
+        "pile": "24",
+        "lockCode": "กอง 24",
+        "qty": 25
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-337-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.37 ม. (ลวด 5 เส้น)",
+    "length": 3.37,
+    "wire": "5",
+    "totalQty": 21,
+    "locations": [
+      {
+        "pile": "27",
+        "lockCode": "กอง 27",
+        "qty": 21
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-170-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.70 ม. (ลวด 4 เส้น)",
+    "length": 1.7,
+    "wire": "4",
+    "totalQty": 4,
+    "locations": [
+      {
+        "pile": "28",
+        "lockCode": "กอง 28",
+        "qty": 4
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-355-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.55 ม. (ลวด 5 เส้น)",
+    "length": 3.55,
+    "wire": "5",
+    "totalQty": 18,
+    "locations": [
+      {
+        "pile": "29",
+        "lockCode": "กอง 29",
+        "qty": 12
+      },
+      {
+        "pile": "33",
+        "lockCode": "กอง 33",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-370-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.70 ม. (ลวด 5 เส้น)",
+    "length": 3.7,
+    "wire": "5",
+    "totalQty": 24,
+    "locations": [
+      {
+        "pile": "29",
+        "lockCode": "กอง 29",
+        "qty": 24
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-180-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.80 ม. (ลวด 4 เส้น)",
+    "length": 1.8,
+    "wire": "4",
+    "totalQty": 5,
+    "locations": [
+      {
+        "pile": "29",
+        "lockCode": "กอง 29",
+        "qty": 5
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-180-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.80 ม. (ลวด 5 เส้น)",
+    "length": 1.8,
+    "wire": "5",
+    "totalQty": 14,
+    "locations": [
+      {
+        "pile": "29",
+        "lockCode": "กอง 29",
+        "qty": 14
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-165-CUT",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.65 ม. (แผ่นตัดพิเศษ)",
+    "length": 1.65,
+    "wire": "แผ่นตัด",
+    "totalQty": 93,
+    "locations": [
+      {
+        "pile": "30",
+        "lockCode": "กอง 30",
+        "qty": 93
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-320-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.20 ม. (ลวด 7 เส้น)",
+    "length": 3.2,
+    "wire": "7",
+    "totalQty": 4,
+    "locations": [
+      {
+        "pile": "32",
+        "lockCode": "กอง 32",
+        "qty": 4
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-340-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.40 ม. (ลวด 6 เส้น)",
+    "length": 3.4,
+    "wire": "6",
+    "totalQty": 3,
+    "locations": [
+      {
+        "pile": "33",
+        "lockCode": "กอง 33",
+        "qty": 3
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-340-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.40 ม. (ลวด 5 เส้น)",
+    "length": 3.4,
+    "wire": "5",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "33",
+        "lockCode": "กอง 33",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-345-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.45 ม. (ลวด 7 เส้น)",
+    "length": 3.45,
+    "wire": "7",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "33",
+        "lockCode": "กอง 33",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-289-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.89 ม. (ลวด 6 เส้น)",
+    "length": 2.89,
+    "wire": "6",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "33",
+        "lockCode": "กอง 33",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-354-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.54 ม. (ลวด 5 เส้น)",
+    "length": 3.54,
+    "wire": "5",
+    "totalQty": 4,
+    "locations": [
+      {
+        "pile": "33",
+        "lockCode": "กอง 33",
+        "qty": 4
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-335-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.35 ม. (ลวด 5 เส้น)",
+    "length": 3.35,
+    "wire": "5",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "33",
+        "lockCode": "กอง 33",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-430-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x4.30 ม. (ลวด 7 เส้น)",
+    "length": 4.3,
+    "wire": "7",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "33",
+        "lockCode": "กอง 33",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-310-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.10 ม. (ลวด 5 เส้น)",
+    "length": 3.1,
+    "wire": "5",
+    "totalQty": 37,
+    "locations": [
+      {
+        "pile": "33",
+        "lockCode": "กอง 33",
+        "qty": 37
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-250-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.50 ม. (ลวด 5 เส้น)",
+    "length": 2.5,
+    "wire": "5",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-125-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.25 ม. (ลวด 7 เส้น)",
+    "length": 1.25,
+    "wire": "7",
+    "totalQty": 120,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 120
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-160-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.60 ม. (ลวด 7 เส้น)",
+    "length": 1.6,
+    "wire": "7",
+    "totalQty": 4,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 4
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-172-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.72 ม. (ลวด 6 เส้น)",
+    "length": 1.72,
+    "wire": "6",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-173-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.73 ม. (ลวด 6 เส้น)",
+    "length": 1.73,
+    "wire": "6",
+    "totalQty": 3,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 3
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-210-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.10 ม. (ลวด 7 เส้น)",
+    "length": 2.1,
+    "wire": "7",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-177-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.77 ม. (ลวด 4 เส้น)",
+    "length": 1.77,
+    "wire": "4",
+    "totalQty": 5,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 5
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-110-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.10 ม. (ลวด 5 เส้น)",
+    "length": 1.1,
+    "wire": "5",
+    "totalQty": 204,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 204
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-195-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.95 ม. (ลวด 6 เส้น)",
+    "length": 1.95,
+    "wire": "6",
+    "totalQty": 10,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 10
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-205-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.05 ม. (ลวด 5 เส้น)",
+    "length": 2.05,
+    "wire": "5",
+    "totalQty": 4,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 4
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-245-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x2.45 ม. (ลวด 6 เส้น)",
+    "length": 2.45,
+    "wire": "6",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-330-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.30 ม. (ลวด 5 เส้น)",
+    "length": 3.3,
+    "wire": "5",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-320-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x3.20 ม. (ลวด 5 เส้น)",
+    "length": 3.2,
+    "wire": "5",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-181-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.81 ม. (ลวด 4 เส้น)",
+    "length": 1.81,
+    "wire": "4",
+    "totalQty": 4,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 4
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-192-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.92 ม. (ลวด 6 เส้น)",
+    "length": 1.92,
+    "wire": "6",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-185-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.85 ม. (ลวด 6 เส้น)",
+    "length": 1.85,
+    "wire": "6",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-188-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.88 ม. (ลวด 6 เส้น)",
+    "length": 1.88,
+    "wire": "6",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-179-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.79 ม. (ลวด 6 เส้น)",
+    "length": 1.79,
+    "wire": "6",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-190-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.90 ม. (ลวด 6 เส้น)",
+    "length": 1.9,
+    "wire": "6",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-176-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.76 ม. (ลวด 6 เส้น)",
+    "length": 1.76,
+    "wire": "6",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-165-W7",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.65 ม. (ลวด 7 เส้น)",
+    "length": 1.65,
+    "wire": "7",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-150-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.50 ม. (ลวด 6 เส้น)",
+    "length": 1.5,
+    "wire": "6",
+    "totalQty": 9,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 9
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-190-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.90 ม. (ลวด 5 เส้น)",
+    "length": 1.9,
+    "wire": "5",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-188-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.88 ม. (ลวด 4 เส้น)",
+    "length": 1.88,
+    "wire": "4",
+    "totalQty": 2,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-165-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.65 ม. (ลวด 5 เส้น)",
+    "length": 1.65,
+    "wire": "5",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-155-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.55 ม. (ลวด 5 เส้น)",
+    "length": 1.55,
+    "wire": "5",
+    "totalQty": 12,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 12
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-154-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.54 ม. (ลวด 4 เส้น)",
+    "length": 1.54,
+    "wire": "4",
+    "totalQty": 1,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-120-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.20 ม. (ลวด 4 เส้น)",
+    "length": 1.2,
+    "wire": "4",
+    "totalQty": 14,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 2
+      },
+      {
+        "pile": "แพ4",
+        "lockCode": "แพ4",
+        "qty": 12
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-95-W6",
+    "name": "แผ่นพื้นตัน 0.05x0.35x0.95 ม. (ลวด 6 เส้น)",
+    "length": 0.95,
+    "wire": "6",
+    "totalQty": 17,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 17
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-95-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x0.95 ม. (ลวด 4 เส้น)",
+    "length": 0.95,
+    "wire": "4",
+    "totalQty": 8,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 8
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-140-W5",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.40 ม. (ลวด 5 เส้น)",
+    "length": 1.4,
+    "wire": "5",
+    "totalQty": 4,
+    "locations": [
+      {
+        "pile": "ชายคา",
+        "lockCode": "ชายคา",
+        "qty": 4
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-155-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.55 ม. (ลวด 4 เส้น)",
+    "length": 1.55,
+    "wire": "4",
+    "totalQty": 30,
+    "locations": [
+      {
+        "pile": "แพ4",
+        "lockCode": "แพ4",
+        "qty": 30
+      }
+    ]
+  },
+  {
+    "sku": "SLAB-SP-135-W4",
+    "name": "แผ่นพื้นตัน 0.05x0.35x1.35 ม. (ลวด 4 เส้น)",
+    "length": 1.35,
+    "wire": "4",
+    "totalQty": 6,
+    "locations": [
+      {
+        "pile": "แพ4",
+        "lockCode": "แพ4",
+        "qty": 6
+      }
+    ]
   }
+];
+  slabData.forEach((slab: any, idx: number) => {
+    const itemId = `p3-slab-${idx + 1}`;
+    const wireStr = slab.wire === "แผ่นตัด" ? "แผ่นตัดพิเศษ" : `ลวด ${slab.wire} เส้น`;
+    const locZones = slab.locations.map((l: any) => l.lockCode).join(", ");
 
-  // Plant 3: Plank & Hollow Core (96 items)
-  const p3Featured = [
-    { sku: "SL-200", name: "แผ่นพื้นคอนกรีตสำเร็จรูป Plank", variant: "หนา 5 ซม. ลวด 4 เส้น", size: "2.00 ม. • กว้าง 35 ซม.", height: "2.00 ม.", width: "35 ซม.", unit: "แผ่น", qty: 65, lock: "P1", row: "1" },
-    { sku: "SL-300", name: "แผ่นพื้นคอนกรีตสำเร็จรูป Plank", variant: "หนา 5 ซม. ลวด 6 เส้น", size: "3.00 ม. • กว้าง 35 ซม.", height: "3.00 ม.", width: "35 ซม.", unit: "แผ่น", qty: 56, lock: "P1", row: "3" },
-    { sku: "HC-06-25", name: "แผ่นพื้นฮอลโลว์คอร์ (Hollow Core)", variant: "หนา 6 ซม. กว้าง 60 ซม.", size: "2.50 ม. • กว้าง 60 ซม.", height: "2.50 ม.", width: "60 ซม.", unit: "แผ่น", qty: 40, lock: "HC-A", row: "2" },
-  ];
-
-  p3Featured.forEach((item, idx) => {
-    items.push({
-      id: `p3-item-${idx + 1}`,
-      sku: item.sku,
-      name: item.name,
-      category: "finished_goods",
-      variant: item.variant,
-      size: item.size,
-      height: item.height,
-      width: item.width,
-      unit: item.unit,
-      plant_id: 3,
-      zone: `ล็อค ${item.lock} แถว ${item.row}`,
-      current_quantity: item.qty,
-      last_counted_at: "2026-10-26T08:30:00Z",
-      last_counted_by: "user-3",
-      last_counted_by_name: "นิตยา รักษ์พงษ์",
-      status: "ACTIVE",
-      is_active: true,
-      locations: [
-        {
-          id: `loc-map-p3-${idx}`,
-          inventory_item_id: `p3-item-${idx + 1}`,
-          lock_code: item.lock,
-          row_code: item.row,
-          expected_quantity: item.qty,
-        },
-      ],
-      created_at: "2026-09-01T00:00:00Z",
-      updated_at: "2026-10-26T08:30:00Z",
+    const mappedLocations = slab.locations.map((l: any, lIdx: number) => {
+      const sLocId = ensureLoc(3, l.lockCode, "1", `ลานแผ่นพื้นตัน ${l.lockCode}`);
+      return {
+        id: `loc-map-p3-${idx}-${lIdx}`,
+        inventory_item_id: itemId,
+        storage_location_id: sLocId,
+        lock_code: l.lockCode,
+        row_code: "1",
+        expected_quantity: l.qty,
+      };
     });
-  });
 
-  for (let i = p3Featured.length + 1; i <= 96; i++) {
-    const isUncounted = i > 52;
     items.push({
-      id: `p3-item-${i}`,
-      sku: `SL-EXT-${i.toString().padStart(3, "0")}`,
-      name: `แผ่นพื้นสั่งทำพิเศษ P3-${i}`,
-      category: "finished_goods",
-      variant: "มาตรฐาน มอก.",
-      size: `${(2.2 + (i % 6) * 0.4).toFixed(2)} ม. • กว้าง 35 ซม.`,
-      height: `${(2.2 + (i % 6) * 0.4).toFixed(2)} ม.`,
+      id: itemId,
+      sku: slab.sku,
+      name: slab.name,
+      category: "slabs",
+      variant: wireStr,
+      size: `${slab.length.toFixed(2)} ม. • หนา 5 ซม. กว้าง 35 ซม.`,
+      height: "0.05 ม.",
+      width: "0.35 ม.",
+      length: `${slab.length.toFixed(2)} ม.`,
       unit: "แผ่น",
       plant_id: 3,
-      zone: `ล็อค P${i % 3 + 1} แถว ${i % 4 + 1}`,
-      current_quantity: isUncounted ? 30 : 15 + (i * 3) % 60,
-      last_counted_at: isUncounted ? undefined : "2026-10-25T14:15:00Z",
-      last_counted_by: isUncounted ? undefined : "user-3",
-      last_counted_by_name: isUncounted ? undefined : "นิตยา รักษ์พงษ์",
+      zone: locZones,
+      current_quantity: slab.totalQty,
+      last_counted_at: "2026-10-30T10:00:00Z",
+      last_counted_by: "usr-kcon-pcryclc",
+      last_counted_by_name: "พนักงานคลังสินค้า (pcryclc)",
       status: "ACTIVE",
       is_active: true,
-      locations: [
-        {
-          id: `loc-map-p3-${i}`,
-          inventory_item_id: `p3-item-${i}`,
-          lock_code: `P${i % 3 + 1}`,
-          row_code: `${i % 4 + 1}`,
-          expected_quantity: isUncounted ? 30 : 15 + (i * 3) % 60,
-        },
-      ],
-      created_at: "2026-09-01T00:00:00Z",
-      updated_at: "2026-10-25T14:15:00Z",
-    });
-  }
-
-  // Plant 4: Infrastructure & L-Wall (110 items)
-  const p4Featured = [
-    { sku: "LW-200", name: "แผ่นผนังกันดินสำเร็จรูป L-Wall", variant: "ฐาน 1.20 ม. หนา 15 ซม.", size: "2.00 ม. • ฐาน 1.20 ม.", height: "2.00 ม.", unit: "แผ่น", qty: 42, lock: "W1", row: "2" },
-    { sku: "RCP-040", name: "ท่อคอนกรีตเสริมเหล็ก คสล. ชั้น 3", variant: "ท่อปากลิ้นราง มอก.", size: "Ø 0.40 x 1.00 ม.", unit: "ท่อน", qty: 85, lock: "Yard-Pipe", row: "1" },
-    { sku: "KB-01", name: "ขอบคันหินคอนกรีตสำเร็จรูป", variant: "ผิวเรียบ หน้าเอียง", size: "0.15 x 0.30 x 1.00 ม.", unit: "ท่อน", qty: 320, lock: "Yard-Kerb", row: "1" },
-  ];
-
-  p4Featured.forEach((item, idx) => {
-    items.push({
-      id: `p4-item-${idx + 1}`,
-      sku: item.sku,
-      name: item.name,
-      category: "finished_goods",
-      variant: item.variant,
-      size: item.size,
-      height: item.height,
-      unit: item.unit,
-      plant_id: 4,
-      zone: `ล็อค ${item.lock} แถว ${item.row}`,
-      current_quantity: item.qty,
-      last_counted_at: "2026-10-26T07:45:00Z",
-      last_counted_by: "user-4",
-      last_counted_by_name: "สมพร ทรัพย์ประเสริฐ",
-      status: "ACTIVE",
-      is_active: true,
-      locations: [
-        {
-          id: `loc-map-p4-${idx}`,
-          inventory_item_id: `p4-item-${idx + 1}`,
-          lock_code: item.lock,
-          row_code: item.row,
-          expected_quantity: item.qty,
-        },
-      ],
-      created_at: "2026-09-01T00:00:00Z",
-      updated_at: "2026-10-26T07:45:00Z",
+      locations: mappedLocations,
+      created_at: "2026-10-01T00:00:00Z",
+      updated_at: "2026-10-30T10:00:00Z",
     });
   });
 
-  for (let i = p4Featured.length + 1; i <= 110; i++) {
-    const isUncounted = i > 45;
+  // 2. Other Products (Plants 1, 2, 4)
+  const otherData = [
+  {
+    "sku": "FP-3-200",
+    "name": "เสารั้วคอนกรีต 3\" ยาว 2.00 เมตร",
+    "category": "fences",
+    "plantId": 2,
+    "variant": "3 นิ้ว ลวด 4 เส้น",
+    "height": "2.00",
+    "width": "3",
+    "length": "2.00",
+    "unit": "ต้น",
+    "qty": 6147,
+    "lock": "ลานเสารั้ว A1",
+    "row": "1"
+  },
+  {
+    "sku": "FP-3-250",
+    "name": "เสารั้วคอนกรีต 3\" ยาว 2.50 เมตร",
+    "category": "fences",
+    "plantId": 2,
+    "variant": "3 นิ้ว ลวด 4 เส้น",
+    "height": "2.50",
+    "width": "3",
+    "length": "2.50",
+    "unit": "ต้น",
+    "qty": 320,
+    "lock": "ลานเสารั้ว A2",
+    "row": "1"
+  },
+  {
+    "sku": "FP-4-200",
+    "name": "เสารั้วคอนกรีต 4\" ยาว 2.00 เมตร",
+    "category": "fences",
+    "plantId": 2,
+    "variant": "4 นิ้ว ลวด 4 เส้น",
+    "height": "2.00",
+    "width": "4",
+    "length": "2.00",
+    "unit": "ต้น",
+    "qty": 270,
+    "lock": "ลานเสารั้ว B1",
+    "row": "1"
+  },
+  {
+    "sku": "FP-4-250",
+    "name": "เสารั้วคอนกรีต 4\" ยาว 2.50 เมตร",
+    "category": "fences",
+    "plantId": 2,
+    "variant": "4 นิ้ว ลวด 4 เส้น",
+    "height": "2.50",
+    "width": "4",
+    "length": "2.50",
+    "unit": "ต้น",
+    "qty": 143,
+    "lock": "ลานเสารั้ว B2",
+    "row": "1"
+  },
+  {
+    "sku": "FP-4-300",
+    "name": "เสารั้วคอนกรีต 4\" ยาว 3.00 เมตร",
+    "category": "fences",
+    "plantId": 2,
+    "variant": "4 นิ้ว ลวด 4 เส้น",
+    "height": "3.00",
+    "width": "4",
+    "length": "3.00",
+    "unit": "ต้น",
+    "qty": 168,
+    "lock": "ลานเสารั้ว B3",
+    "row": "1"
+  },
+  {
+    "sku": "FP-4-350",
+    "name": "เสารั้วคอนกรีต 4\" ยาว 3.50 เมตร",
+    "category": "fences",
+    "plantId": 2,
+    "variant": "4 นิ้ว ลวด 4 เส้น",
+    "height": "3.50",
+    "width": "4",
+    "length": "3.50",
+    "unit": "ต้น",
+    "qty": 65,
+    "lock": "ลานเสารั้ว B4",
+    "row": "1"
+  },
+  {
+    "sku": "EP-080",
+    "name": "เสาไฟฟ้าคอนกรีตอัดแรง 8.00 เมตร",
+    "category": "poles",
+    "plantId": 2,
+    "variant": "มอก. กฟภ./กฟน.",
+    "height": "8.00",
+    "width": "0.20",
+    "length": "8.00",
+    "unit": "ต้น",
+    "qty": 46,
+    "lock": "ลานเสาไฟ E1",
+    "row": "1"
+  },
+  {
+    "sku": "EP-120",
+    "name": "เสาไฟฟ้าคอนกรีตอัดแรง 12.00 เมตร",
+    "category": "poles",
+    "plantId": 2,
+    "variant": "มอก. กฟภ./กฟน.",
+    "height": "12.00",
+    "width": "0.25",
+    "length": "12.00",
+    "unit": "ต้น",
+    "qty": 8,
+    "lock": "ลานเสาไฟ E2",
+    "row": "1"
+  },
+  {
+    "sku": "EP-060",
+    "name": "เสาไฟฟ้าคอนกรีตอัดแรง 6.00 เมตร",
+    "category": "poles",
+    "plantId": 2,
+    "variant": "เสาไฟภายในโครงการ",
+    "height": "6.00",
+    "width": "0.15",
+    "length": "6.00",
+    "unit": "ต้น",
+    "qty": 15,
+    "lock": "ลานเสาไฟ E1",
+    "row": "2"
+  },
+  {
+    "sku": "IB-15-100",
+    "name": "เสาไอ 0.15 ยาว 1.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "ไอ 15 ซม.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "1.00",
+    "unit": "ต้น",
+    "qty": 62,
+    "lock": "ลานเสาไอ I1",
+    "row": "1"
+  },
+  {
+    "sku": "IB-15-150",
+    "name": "เสาไอ 0.15 ยาว 1.50 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "ไอ 15 ซม.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "1.50",
+    "unit": "ต้น",
+    "qty": 10,
+    "lock": "ลานเสาไอ I1",
+    "row": "2"
+  },
+  {
+    "sku": "IB-15-200",
+    "name": "เสาไอ 0.15 ยาว 2.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "ไอ 15 ซม.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "2.00",
+    "unit": "ต้น",
+    "qty": 58,
+    "lock": "ลานเสาไอ I1",
+    "row": "3"
+  },
+  {
+    "sku": "IB-15-220",
+    "name": "เสาไอ 0.15 ยาว 2.20 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "ไอ 15 ซม.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "2.20",
+    "unit": "ต้น",
+    "qty": 6,
+    "lock": "ลานเสาไอ I1",
+    "row": "4"
+  },
+  {
+    "sku": "IB-15-250",
+    "name": "เสาไอ 0.15 ยาว 2.50 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "ไอ 15 ซม.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "2.50",
+    "unit": "ต้น",
+    "qty": 208,
+    "lock": "ลานเสาไอ I2",
+    "row": "1"
+  },
+  {
+    "sku": "IB-15-300",
+    "name": "เสาไอ 0.15 ยาว 3.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "ไอ 15 ซม.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "3.00",
+    "unit": "ต้น",
+    "qty": 137,
+    "lock": "ลานเสาไอ I2",
+    "row": "2"
+  },
+  {
+    "sku": "IB-15-350",
+    "name": "เสาไอ 0.15 ยาว 3.50 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "ไอ 15 ซม.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "3.50",
+    "unit": "ต้น",
+    "qty": 72,
+    "lock": "ลานเสาไอ I2",
+    "row": "3"
+  },
+  {
+    "sku": "IB-15-400",
+    "name": "เสาไอ 0.15 ยาว 4.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "ไอ 15 ซม.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "4.00",
+    "unit": "ต้น",
+    "qty": 27,
+    "lock": "ลานเสาไอ I3",
+    "row": "1"
+  },
+  {
+    "sku": "IB-15-500",
+    "name": "เสาไอ 0.15 ยาว 5.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "ไอ 15 ซม.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "5.00",
+    "unit": "ต้น",
+    "qty": 7,
+    "lock": "ลานเสาไอ I3",
+    "row": "2"
+  },
+  {
+    "sku": "IB-15-600",
+    "name": "เสาไอ 0.15 ยาว 6.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "ไอ 15 ซม.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "6.00",
+    "unit": "ต้น",
+    "qty": 133,
+    "lock": "ลานเสาไอ I3",
+    "row": "3"
+  },
+  {
+    "sku": "IB-22-300",
+    "name": "เสาไอ 0.22x0.22 ยาว 3.00 เมตร (มอก.)",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.22",
+    "width": "0.22",
+    "length": "3.00",
+    "unit": "ต้น",
+    "qty": 52,
+    "lock": "ลานเสาไอ I4",
+    "row": "1"
+  },
+  {
+    "sku": "IB-22-350",
+    "name": "เสาไอ 0.22x0.22 ยาว 3.50 เมตร (มอก.)",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.22",
+    "width": "0.22",
+    "length": "3.50",
+    "unit": "ต้น",
+    "qty": 2,
+    "lock": "ลานเสาไอ I4",
+    "row": "2"
+  },
+  {
+    "sku": "IB-22-400",
+    "name": "เสาไอ 0.22x0.22 ยาว 4.00 เมตร (มอก.)",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.22",
+    "width": "0.22",
+    "length": "4.00",
+    "unit": "ต้น",
+    "qty": 48,
+    "lock": "ลานเสาไอ I4",
+    "row": "3"
+  },
+  {
+    "sku": "IB-22-500",
+    "name": "เสาไอ 0.22x0.22 ยาว 5.00 เมตร (มอก.)",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.22",
+    "width": "0.22",
+    "length": "5.00",
+    "unit": "ต้น",
+    "qty": 20,
+    "lock": "ลานเสาไอ I5",
+    "row": "1"
+  },
+  {
+    "sku": "IB-22-600",
+    "name": "เสาไอ 0.22x0.22 ยาว 6.00 เมตร (มอก./รง.)",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก./รง.",
+    "height": "0.22",
+    "width": "0.22",
+    "length": "6.00",
+    "unit": "ต้น",
+    "qty": 115,
+    "lock": "ลานเสาไอ I5",
+    "row": "2"
+  },
+  {
+    "sku": "IB-22-700",
+    "name": "เสาไอ 0.22x0.22 ยาว 7.00 เมตร (มอก.)",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.22",
+    "width": "0.22",
+    "length": "7.00",
+    "unit": "ต้น",
+    "qty": 8,
+    "lock": "ลานเสาไอ I5",
+    "row": "3"
+  },
+  {
+    "sku": "CB-15-300",
+    "name": "เสาตัน 0.15x0.15 ยาว 3.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก./รง.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "3.00",
+    "unit": "ต้น",
+    "qty": 221,
+    "lock": "ลานเสาตัน C1",
+    "row": "1"
+  },
+  {
+    "sku": "CB-15-400",
+    "name": "เสาตัน 0.15x0.15 ยาว 4.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "4.00",
+    "unit": "ต้น",
+    "qty": 9,
+    "lock": "ลานเสาตัน C1",
+    "row": "2"
+  },
+  {
+    "sku": "CB-15-500",
+    "name": "เสาตัน 0.15x0.15 ยาว 5.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "รง.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "5.00",
+    "unit": "ต้น",
+    "qty": 12,
+    "lock": "ลานเสาตัน C1",
+    "row": "3"
+  },
+  {
+    "sku": "CB-15-600",
+    "name": "เสาตัน 0.15x0.15 ยาว 6.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก./รง.",
+    "height": "0.15",
+    "width": "0.15",
+    "length": "6.00",
+    "unit": "ต้น",
+    "qty": 144,
+    "lock": "ลานเสาตัน C1",
+    "row": "4"
+  },
+  {
+    "sku": "CB-18-400",
+    "name": "เสาตัน 0.18x0.18 ยาว 4.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.18",
+    "width": "0.18",
+    "length": "4.00",
+    "unit": "ต้น",
+    "qty": 13,
+    "lock": "ลานเสาตัน C2",
+    "row": "1"
+  },
+  {
+    "sku": "CB-18-500",
+    "name": "เสาตัน 0.18x0.18 ยาว 5.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "รง.",
+    "height": "0.18",
+    "width": "0.18",
+    "length": "5.00",
+    "unit": "ต้น",
+    "qty": 3,
+    "lock": "ลานเสาตัน C2",
+    "row": "2"
+  },
+  {
+    "sku": "CB-18-600",
+    "name": "เสาตัน 0.18x0.18 ยาว 6.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก./รง.",
+    "height": "0.18",
+    "width": "0.18",
+    "length": "6.00",
+    "unit": "ต้น",
+    "qty": 34,
+    "lock": "ลานเสาตัน C2",
+    "row": "3"
+  },
+  {
+    "sku": "CB-18-800",
+    "name": "เสาตัน 0.18x0.18 ยาว 8.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "รง.",
+    "height": "0.18",
+    "width": "0.18",
+    "length": "8.00",
+    "unit": "ต้น",
+    "qty": 2,
+    "lock": "ลานเสาตัน C2",
+    "row": "4"
+  },
+  {
+    "sku": "CB-22-500",
+    "name": "เสาตัน 0.22x0.22 ยาว 5.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "รง.",
+    "height": "0.22",
+    "width": "0.22",
+    "length": "5.00",
+    "unit": "ต้น",
+    "qty": 8,
+    "lock": "ลานเสาตัน C3",
+    "row": "1"
+  },
+  {
+    "sku": "CB-22-600",
+    "name": "เสาตัน 0.22x0.22 ยาว 6.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.22",
+    "width": "0.22",
+    "length": "6.00",
+    "unit": "ต้น",
+    "qty": 55,
+    "lock": "ลานเสาตัน C3",
+    "row": "2"
+  },
+  {
+    "sku": "CB-22-700",
+    "name": "เสาตัน 0.22x0.22 ยาว 7.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.22",
+    "width": "0.22",
+    "length": "7.00",
+    "unit": "ต้น",
+    "qty": 15,
+    "lock": "ลานเสาตัน C3",
+    "row": "3"
+  },
+  {
+    "sku": "CB-22-800",
+    "name": "เสาตัน 0.22x0.22 ยาว 8.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.22",
+    "width": "0.22",
+    "length": "8.00",
+    "unit": "ต้น",
+    "qty": 19,
+    "lock": "ลานเสาตัน C3",
+    "row": "4"
+  },
+  {
+    "sku": "CB-26-600",
+    "name": "เสาตัน 0.26x0.26 ยาว 6.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก./รง.",
+    "height": "0.26",
+    "width": "0.26",
+    "length": "6.00",
+    "unit": "ต้น",
+    "qty": 76,
+    "lock": "ลานเสาตัน C4",
+    "row": "1"
+  },
+  {
+    "sku": "CB-26-700",
+    "name": "เสาตัน 0.26x0.26 ยาว 7.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.26",
+    "width": "0.26",
+    "length": "7.00",
+    "unit": "ต้น",
+    "qty": 22,
+    "lock": "ลานเสาตัน C4",
+    "row": "2"
+  },
+  {
+    "sku": "CB-26-800",
+    "name": "เสาตัน 0.26x0.26 ยาว 8.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.26",
+    "width": "0.26",
+    "length": "8.00",
+    "unit": "ต้น",
+    "qty": 6,
+    "lock": "ลานเสาตัน C4",
+    "row": "3"
+  },
+  {
+    "sku": "CB-30-600",
+    "name": "เสาตัน 0.30x0.30 ยาว 6.00 เมตร",
+    "category": "piles",
+    "plantId": 2,
+    "variant": "มอก.",
+    "height": "0.30",
+    "width": "0.30",
+    "length": "6.00",
+    "unit": "ต้น",
+    "qty": 12,
+    "lock": "ลานเสาตัน C5",
+    "row": "1"
+  },
+  {
+    "sku": "PIPE-30-KML",
+    "name": "ท่อขนาด 30x100 ซม. (คมล.)",
+    "category": "pipes",
+    "plantId": 1,
+    "variant": "คมล. ไม่มีลิ้นราง",
+    "height": "0.30",
+    "width": "0.30",
+    "length": "1.00",
+    "unit": "ท่อน",
+    "qty": 77,
+    "lock": "ลานท่อ P1",
+    "row": "1"
+  },
+  {
+    "sku": "PIPE-40-MOK3",
+    "name": "ท่อขนาด 40x100 ซม. (มอก.3)",
+    "category": "pipes",
+    "plantId": 1,
+    "variant": "มอก. ชั้น 3",
+    "height": "0.40",
+    "width": "0.40",
+    "length": "1.00",
+    "unit": "ท่อน",
+    "qty": 1,
+    "lock": "ลานท่อ P1",
+    "row": "2"
+  },
+  {
+    "sku": "PIPE-60-KSL",
+    "name": "ท่อขนาด 60x100 ซม. (คสล.)",
+    "category": "pipes",
+    "plantId": 1,
+    "variant": "คสล. เสริมเหล็ก",
+    "height": "0.60",
+    "width": "0.60",
+    "length": "1.00",
+    "unit": "ท่อน",
+    "qty": 559,
+    "lock": "ลานท่อ P2",
+    "row": "1"
+  },
+  {
+    "sku": "PIPE-60-MOK3",
+    "name": "ท่อขนาด 60x100 ซม. (มอก.3)",
+    "category": "pipes",
+    "plantId": 1,
+    "variant": "มอก. ชั้น 3",
+    "height": "0.60",
+    "width": "0.60",
+    "length": "1.00",
+    "unit": "ท่อน",
+    "qty": 131,
+    "lock": "ลานท่อ P2",
+    "row": "2"
+  },
+  {
+    "sku": "PIPE-80-KSL",
+    "name": "ท่อขนาด 80x100 ซม. (คสล.)",
+    "category": "pipes",
+    "plantId": 1,
+    "variant": "คสล. เสริมเหล็ก",
+    "height": "0.80",
+    "width": "0.80",
+    "length": "1.00",
+    "unit": "ท่อน",
+    "qty": 246,
+    "lock": "ลานท่อ P3",
+    "row": "1"
+  },
+  {
+    "sku": "PIPE-80-MOK3",
+    "name": "ท่อขนาด 80x100 ซม. (มอก.3)",
+    "category": "pipes",
+    "plantId": 1,
+    "variant": "มอก. ชั้น 3",
+    "height": "0.80",
+    "width": "0.80",
+    "length": "1.00",
+    "unit": "ท่อน",
+    "qty": 256,
+    "lock": "ลานท่อ P3",
+    "row": "2"
+  },
+  {
+    "sku": "PIPE-100-KSL",
+    "name": "ท่อขนาด 100x100 ซม. (คสล.)",
+    "category": "pipes",
+    "plantId": 1,
+    "variant": "คสล. เสริมเหล็ก",
+    "height": "1.00",
+    "width": "1.00",
+    "length": "1.00",
+    "unit": "ท่อน",
+    "qty": 193,
+    "lock": "ลานท่อ P4",
+    "row": "1"
+  },
+  {
+    "sku": "PIPE-100-MOK2",
+    "name": "ท่อขนาด 100x100 ซม. (มอก.2)",
+    "category": "pipes",
+    "plantId": 1,
+    "variant": "มอก. ชั้น 2 รับน้ำหนักสูง",
+    "height": "1.00",
+    "width": "1.00",
+    "length": "1.00",
+    "unit": "ท่อน",
+    "qty": 25,
+    "lock": "ลานท่อ P4",
+    "row": "2"
+  },
+  {
+    "sku": "PIPE-100-MOK3",
+    "name": "ท่อขนาด 100x100 ซม. (มอก.3)",
+    "category": "pipes",
+    "plantId": 1,
+    "variant": "มอก. ชั้น 3",
+    "height": "1.00",
+    "width": "1.00",
+    "length": "1.00",
+    "unit": "ท่อน",
+    "qty": 198,
+    "lock": "ลานท่อ P4",
+    "row": "3"
+  },
+  {
+    "sku": "MH-40-2W",
+    "name": "บ่อพักสำหรับท่อ 40 (2 ทางตรง หนา 10 ซม. มีพื้น)",
+    "category": "pipes",
+    "plantId": 1,
+    "variant": "2 ทางตรง มีพื้น",
+    "height": "0.80",
+    "width": "0.60",
+    "length": "0.60",
+    "unit": "ชุด",
+    "qty": 8,
+    "lock": "ลานบ่อพัก M1",
+    "row": "1"
+  },
+  {
+    "sku": "BLK-65",
+    "name": "อิฐบล็อค 6.50 ซม. (55 เลท)",
+    "category": "hardscape",
+    "plantId": 4,
+    "variant": "หนา 6.5 ซม. (306 ก้อน/เลท)",
+    "height": "0.19",
+    "width": "0.065",
+    "length": "0.39",
+    "unit": "เลท",
+    "qty": 55,
+    "lock": "ลานบล็อค B1",
+    "row": "1"
+  },
+  {
+    "sku": "BLK-70",
+    "name": "อิฐบล็อค 7.00 ซม.",
+    "category": "hardscape",
+    "plantId": 4,
+    "variant": "หนา 7.0 ซม. (288 ก้อน/เลท)",
+    "height": "0.19",
+    "width": "0.07",
+    "length": "0.39",
+    "unit": "เลท",
+    "qty": 0,
+    "lock": "ลานบล็อค B1",
+    "row": "2"
+  },
+  {
+    "sku": "BLK-90",
+    "name": "อิฐบล็อค 9.00 ซม. (144 เลท)",
+    "category": "hardscape",
+    "plantId": 4,
+    "variant": "หนา 9.0 ซม. (216 ก้อน/เลท)",
+    "height": "0.19",
+    "width": "0.09",
+    "length": "0.39",
+    "unit": "เลท",
+    "qty": 144,
+    "lock": "ลานบล็อค B2",
+    "row": "1"
+  },
+  {
+    "sku": "BLK-90-P3",
+    "name": "อิฐบล็อค 9.00 ซม. (โรง 3 สำรอง 54 เลท)",
+    "category": "hardscape",
+    "plantId": 4,
+    "variant": "หนา 9.0 ซม. สต็อกโรง 3",
+    "height": "0.19",
+    "width": "0.09",
+    "length": "0.39",
+    "unit": "เลท",
+    "qty": 54,
+    "lock": "ลานบล็อค B2",
+    "row": "2"
+  },
+  {
+    "sku": "BLK-140",
+    "name": "อิฐบล็อค 14.00 ซม.",
+    "category": "hardscape",
+    "plantId": 4,
+    "variant": "หนา 14.0 ซม. (144 ก้อน/เลท)",
+    "height": "0.19",
+    "width": "0.14",
+    "length": "0.39",
+    "unit": "เลท",
+    "qty": 28,
+    "lock": "ลานบล็อค B3",
+    "row": "1"
+  },
+  {
+    "sku": "PAVE-40",
+    "name": "แผ่นทางเท้า ขนาด 40x40 หนา 4.00 ซม. (สีธรรมชาติ หน้าเรียบ)",
+    "category": "hardscape",
+    "plantId": 4,
+    "variant": "หน้าเรียบ ไม่ขัด",
+    "height": "0.04",
+    "width": "0.40",
+    "length": "0.40",
+    "unit": "แผ่น",
+    "qty": 300,
+    "lock": "ลานแผ่นทางเท้า T1",
+    "row": "1"
+  }
+];
+  otherData.forEach((item: any, idx: number) => {
+    const itemId = `p${item.plantId}-other-${idx + 1}`;
+    const sLocId = ensureLoc(item.plantId, item.lock, item.row || "1", `พื้นที่จัดเก็บ ${item.lock}`);
+
     items.push({
-      id: `p4-item-${i}`,
-      sku: `INF-${i.toString().padStart(3, "0")}`,
-      name: `งานโครงสร้างพื้นฐานหล่อสำเร็จ P4-${i}`,
-      category: "finished_goods",
-      variant: "มาตรฐานงานทาง กรมทางหลวง",
-      size: `แบบ ${i % 5 + 1}`,
-      unit: i % 2 === 0 ? "ชิ้น" : "ท่อน",
-      plant_id: 4,
-      zone: `ล็อค Y${i % 3 + 1} แถว ${i % 4 + 1}`,
-      current_quantity: isUncounted ? 25 : 10 + (i * 2) % 50,
-      last_counted_at: isUncounted ? undefined : "2026-10-25T16:00:00Z",
-      last_counted_by: isUncounted ? undefined : "user-4",
-      last_counted_by_name: isUncounted ? undefined : "สมพร ทรัพย์ประเสริฐ",
+      id: itemId,
+      sku: item.sku,
+      name: item.name,
+      category: item.category,
+      variant: item.variant,
+      size: `${item.length} ม. • ${item.width} ${item.width.includes('"') ? 'นิ้ว' : 'ม.'}`,
+      height: item.height ? `${item.height} ม.` : undefined,
+      width: item.width,
+      length: `${item.length} ม.`,
+      unit: item.unit,
+      plant_id: item.plantId,
+      zone: item.lock,
+      current_quantity: item.qty,
+      last_counted_at: "2026-10-30T10:00:00Z",
+      last_counted_by: "usr-kcon-pcryclc",
+      last_counted_by_name: "พนักงานคลังสินค้า (pcryclc)",
       status: "ACTIVE",
       is_active: true,
       locations: [
         {
-          id: `loc-map-p4-${i}`,
-          inventory_item_id: `p4-item-${i}`,
-          lock_code: `Y${i % 3 + 1}`,
-          row_code: `${i % 4 + 1}`,
-          expected_quantity: isUncounted ? 25 : 10 + (i * 2) % 50,
+          id: `loc-map-other-${idx}-0`,
+          inventory_item_id: itemId,
+          storage_location_id: sLocId,
+          lock_code: item.lock,
+          row_code: item.row || "1",
+          expected_quantity: item.qty,
         },
       ],
-      created_at: "2026-09-01T00:00:00Z",
-      updated_at: "2026-10-25T16:00:00Z",
+      created_at: "2026-10-01T00:00:00Z",
+      updated_at: "2026-10-30T10:00:00Z",
     });
-  }
+  });
 
-  return items;
+  return { items, storageLocations: Array.from(locMap.values()) };
 }
 
-export const MOCK_ITEMS: InventoryItem[] = generateItems();
+const generated = generateItems();
+export const MOCK_ITEMS: InventoryItem[] = generated.items;
+export const MOCK_STORAGE_LOCATIONS: StorageLocation[] = generated.storageLocations;
 
-// Empty stock counts and adjustments for clean production state (Ready for physical counts)
 export const MOCK_STOCK_COUNTS: StockCount[] = [];
-
+export const MOCK_COUNTS: StockCount[] = MOCK_STOCK_COUNTS;
 export const MOCK_ADJUSTMENTS: StockAdjustment[] = [];

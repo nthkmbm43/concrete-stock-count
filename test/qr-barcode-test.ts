@@ -29,12 +29,12 @@ async function runQrBarcodeTests() {
   // ─────────────────────────────────────────────────────────────
   console.log("\n--- 1. Testing High-Res QR Code DataURL Generation ---");
   const testSkus = [
-    "SLAB-SP-100",
-    "SLAB-HC-06-200",
-    "PILE-I-18-040",
-    "POLE-PEA-060",
-    "PIPE-RC-040-2",
-    "WALL-L-100",
+    "SLAB-SP-100-W4",
+    "SLAB-SP-295-W5",
+    "IB-15-200",
+    "EP-120",
+    "PIPE-60-KSL",
+    "BLK-90",
   ];
 
   for (const sku of testSkus) {
@@ -77,16 +77,16 @@ async function runQrBarcodeTests() {
     return trimmed;
   }
 
-  assert(parseScannedCode("SLAB-SP-100") === "SLAB-SP-100", "Parse raw plain SKU");
-  assert(parseScannedCode("  SLAB-SP-100  \n") === "SLAB-SP-100", "Trim whitespace and newlines");
-  assert(parseScannedCode('{"sku":"SLAB-SP-100"}') === "SLAB-SP-100", "Parse JSON payload with sku");
-  assert(parseScannedCode('{"id":"prod-kcon-sp-100"}') === "prod-kcon-sp-100", "Parse JSON payload with id");
+  assert(parseScannedCode("FP-3-200") === "FP-3-200", "Parse raw plain SKU");
+  assert(parseScannedCode("  FP-3-200  \n") === "FP-3-200", "Trim whitespace and newlines");
+  assert(parseScannedCode('{"sku":"FP-3-200"}') === "FP-3-200", "Parse JSON payload with sku");
+  assert(parseScannedCode('{"id":"prod-other-1"}') === "prod-other-1", "Parse JSON payload with id");
   assert(
-    parseScannedCode("https://store-app2.vercel.app/?sku=SLAB-SP-100") === "SLAB-SP-100",
+    parseScannedCode("https://store-app2.vercel.app/?sku=FP-3-200") === "FP-3-200",
     "Parse URL query parameter ?sku="
   );
   assert(
-    parseScannedCode("https://store-app2.vercel.app/products/SLAB-SP-100") === "SLAB-SP-100",
+    parseScannedCode("https://store-app2.vercel.app/products/FP-3-200") === "FP-3-200",
     "Parse URL path /products/:sku"
   );
 
@@ -102,7 +102,7 @@ async function runQrBarcodeTests() {
     with: { locations: { with: { storageLocation: true } } },
   });
 
-  assert(allProducts.length === 64, `Database contains exactly 64 KCON products (found: ${allProducts.length})`);
+  assert(allProducts.length === 183, `Database contains exactly 183 KCON products (found: ${allProducts.length})`);
 
   function findItemByCode(code: string) {
     const parsed = parseScannedCode(code).toLowerCase();
@@ -118,19 +118,19 @@ async function runQrBarcodeTests() {
     return partial || null;
   }
 
-  const match1 = findItemByCode("SLAB-SP-100");
-  assert(match1 !== null && match1.sku === "SLAB-SP-100", "Found exact match for SLAB-SP-100");
-  assert(match1?.plantId === 3, "SLAB-SP-100 belongs to Plant 3");
+  const match1 = findItemByCode("SLAB-SP-100-W4");
+  assert(match1 !== null && match1.sku === "SLAB-SP-100-W4", "Found exact match for SLAB-SP-100-W4");
+  assert(match1?.plantId === 3, "SLAB-SP-100-W4 belongs to Plant 3");
 
-  const matchCaseInsensitive = findItemByCode("slab-sp-100");
-  assert(matchCaseInsensitive !== null && matchCaseInsensitive.sku === "SLAB-SP-100", "Case-insensitive SKU match");
+  const matchCaseInsensitive = findItemByCode("slab-sp-100-w4");
+  assert(matchCaseInsensitive !== null && matchCaseInsensitive.sku === "SLAB-SP-100-W4", "Case-insensitive SKU match");
 
-  const matchPipe = findItemByCode("PIPE-040-C3");
-  assert(matchPipe !== null && matchPipe.sku === "PIPE-040-C3", "Found match for Drain Pipe 0.40m");
+  const matchPipe = findItemByCode("PIPE-60-KSL");
+  assert(matchPipe !== null && matchPipe.sku === "PIPE-60-KSL", "Found match for Drain Pipe 60cm KSL");
   assert(matchPipe?.plantId === 1, "Drain Pipe belongs to Plant 1");
 
-  const matchPole = findItemByCode("POLE-12M");
-  assert(matchPole !== null && matchPole.sku === "POLE-12M", "Found match for Electric Pole 12m");
+  const matchPole = findItemByCode("EP-120");
+  assert(matchPole !== null && matchPole.sku === "EP-120", "Found match for Electric Pole 12m");
   assert(matchPole?.plantId === 2, "Electric Pole belongs to Plant 2");
 
   // ─────────────────────────────────────────────────────────────
@@ -152,17 +152,17 @@ async function runQrBarcodeTests() {
   const searchPipes = searchProducts("ท่อ");
   assert(searchPipes.length >= 8, `Search 'ท่อ' finds multiple pipe SKUs (found: ${searchPipes.length})`);
 
-  const searchPlank = searchProducts("Solid Plank");
-  assert(searchPlank.length >= 8, `Search 'Solid Plank' finds all 8 lengths (found: ${searchPlank.length})`);
+  const searchPlank = searchProducts("แผ่นพื้นตัน");
+  assert(searchPlank.length >= 100, `Search 'แผ่นพื้นตัน' finds all 100+ slab variants (found: ${searchPlank.length})`);
 
-  const searchHollowCore = searchProducts("Hollow Core");
-  assert(searchHollowCore.length >= 6, `Search 'Hollow Core' finds all thicknesses (found: ${searchHollowCore.length})`);
+  const searchFences = searchProducts("เสารั้ว");
+  assert(searchFences.length >= 6, `Search 'เสารั้ว' finds all fence posts (found: ${searchFences.length})`);
 
-  const searchPiles = searchProducts("เสาเข็ม");
-  assert(searchPiles.length >= 10, `Search 'เสาเข็ม' finds I-Piles & Square Piles (found: ${searchPiles.length})`);
+  const searchPiles = searchProducts("เสาไอ");
+  assert(searchPiles.length >= 15, `Search 'เสาไอ' finds I-Piles (found: ${searchPiles.length})`);
 
-  const searchByExactSkuPrefix = searchProducts("L-WALL");
-  assert(searchByExactSkuPrefix.length >= 4, `Search 'L-WALL' finds all L-Wall heights (found: ${searchByExactSkuPrefix.length})`);
+  const searchBlocks = searchProducts("อิฐบล็อค");
+  assert(searchBlocks.length >= 5, `Search 'อิฐบล็อค' finds all block pallet variants (found: ${searchBlocks.length})`);
 
   console.log("\n==================================================");
   console.log(`ALL QR & BARCODE TESTS PASSED: ${passed}/${total} (100%)`);

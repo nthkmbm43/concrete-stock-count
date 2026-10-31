@@ -14,7 +14,7 @@ import { ProductCard } from "@/components/count/ProductCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Search, Filter, Layers, ArrowLeft, RefreshCw, FileSpreadsheet, QrCode } from "lucide-react";
+import { Search, Filter, Layers, ArrowLeft, FileSpreadsheet, QrCode, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -46,6 +46,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [filterStatus, setFilterStatus] = useState<CountFilter>("ALL");
+  const [selectedPile, setSelectedPile] = useState<string>("ALL");
 
   // Selected plant object
   const currentPlant = useMemo(
@@ -59,6 +60,25 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
     return items.filter((item) => item.plant_id === selectedPlantId);
   }, [items, selectedPlantId]);
 
+  // Distinct Piles/Locations in this plant
+  const availablePiles = useMemo(() => {
+    const set = new Set<string>();
+    plantItems.forEach((item) => {
+      (item.locations || []).forEach((l) => {
+        if (l.lock_code) set.add(l.lock_code);
+      });
+      if (item.zone) {
+        item.zone.split(",").forEach((z) => {
+          const trimmed = z.trim();
+          if (trimmed && !trimmed.startsWith("โรง")) set.add(trimmed);
+        });
+      }
+    });
+    return Array.from(set).sort((a, b) =>
+      a.localeCompare(b, undefined, { numeric: true })
+    );
+  }, [plantItems]);
+
   // Counts map for current round & plant
   const itemCountsMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -71,21 +91,30 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
     return map;
   }, [counts, round.id]);
 
-  // Filtered items (Rule 23: 300ms Debounce)
+  // Filtered items (Rule 23: 300ms Debounce + Smart Multi-Term Search)
   const filteredItems = useMemo(() => {
     return plantItems.filter((item) => {
-      // 1. Search Query
+      // 1. Search Query with Multi-Term Matching (e.g. "2.95 5" or "กอง 4" or "รั้ว 3 2.5")
       const q = debouncedSearch.toLowerCase().trim();
-      const matchesSearch =
-        !q ||
-        item.sku.toLowerCase().includes(q) ||
-        item.name.toLowerCase().includes(q) ||
-        item.size.toLowerCase().includes(q) ||
-        (item.zone && item.zone.toLowerCase().includes(q));
+      if (q) {
+        const terms = q.split(/\s+/).filter(Boolean);
+        const locStr = (item.locations || [])
+          .map((l) => `${l.lock_code} ${l.row_code}`)
+          .join(" ");
+        const searchableText = `${item.sku} ${item.name} ${item.size} ${item.variant || ""} ${item.zone || ""} ${locStr}`.toLowerCase();
+        const matchesAllTerms = terms.every((term) => searchableText.includes(term));
+        if (!matchesAllTerms) return false;
+      }
 
-      if (!matchesSearch) return false;
+      // 2. Pile Filter
+      if (selectedPile !== "ALL") {
+        const hasPile =
+          (item.locations || []).some((l) => l.lock_code === selectedPile) ||
+          (item.zone && item.zone.includes(selectedPile));
+        if (!hasPile) return false;
+      }
 
-      // 2. Count Status Filter
+      // 3. Count Status Filter
       const countCount = itemCountsMap.get(item.id) || 0;
       if (filterStatus === "UNCOUNTED") {
         return countCount === 0;
@@ -98,7 +127,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
       }
       return true;
     });
-  }, [plantItems, debouncedSearch, filterStatus, itemCountsMap]);
+  }, [plantItems, debouncedSearch, selectedPile, filterStatus, itemCountsMap]);
 
   // Count stats for filter chips
   const filterStats = useMemo(() => {
@@ -129,7 +158,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
     return progress.plants.find((p) => p.plant_id === selectedPlantId);
   }, [selectedPlantId, progress]);
 
-  // 1. If NO plant selected, show Plant Selector Screen (Requirement #18)
+  // 1. If NO plant selected, show Plant Selector Screen
   if (!selectedPlantId || !currentPlant) {
     return (
       <div className="space-y-4 animate-in fade-in duration-300">
@@ -188,7 +217,10 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
                   key={plant.id}
                   plant={plant}
                   progress={pProg}
-                  onClick={() => onSelectPlant(plant.id)}
+                  onClick={() => {
+                    onSelectPlant(plant.id);
+                    setSelectedPile("ALL");
+                  }}
                 />
               );
             })}
@@ -198,7 +230,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
     );
   }
 
-  // 2. If Plant is selected, show Plant Count Screen (Requirement #19)
+  // 2. If Plant is selected, show Plant Count Screen
   const pct = plantProgress?.percentage ?? (filterStats.all > 0 ? Math.round((filterStats.counted / filterStats.all) * 100) : 0);
 
   return (
@@ -269,7 +301,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="ค้นหา SKU / ชื่อสินค้า / ขนาด..."
+            placeholder="ค้นหา เช่น '2.95 5', 'กอง 4', 'รั้ว 3', 'ท่อ 80'..."
             className="pl-10.5 pr-4 h-12 rounded-2xl bg-white border-2 border-slate-200/90 text-sm font-semibold placeholder:text-slate-400 focus:border-blue-600 shadow-xs"
           />
           {searchQuery && (
@@ -296,14 +328,76 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
         )}
       </div>
 
-      {/* Filter Chips per Requirement #19 */}
-      {/* [ทั้งหมด] [ยังไม่ได้นับ] [นับแล้ว] [มีการนับซ้ำ] */}
+      {/* Yard Pile Selector (ตอบโจทย์ลานเก็บสินค้าจริง เช่น กอง 1-33, ชายคา, รถไฟ, แพ 3-4) */}
+      {availablePiles.length > 1 && (
+        <div className="space-y-1.5 pt-0.5">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 text-blue-600" />
+              จุดวาง / กองสินค้า ({availablePiles.length} จุด)
+            </span>
+            {selectedPile !== "ALL" && (
+              <button
+                onClick={() => setSelectedPile("ALL")}
+                className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
+              >
+                ดูทุกล็อค
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            <button
+              onClick={() => setSelectedPile("ALL")}
+              className={cn(
+                "whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all border touch-press",
+                selectedPile === "ALL"
+                  ? "bg-slate-900 text-white border-slate-900 shadow-xs"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              )}
+            >
+              ทุกล็อค ({plantItems.length})
+            </button>
+            {availablePiles.map((p) => {
+              const countInPile = plantItems.filter(
+                (item) =>
+                  (item.locations || []).some((l) => l.lock_code === p) ||
+                  (item.zone && item.zone.includes(p))
+              ).length;
+              const isSelected = selectedPile === p;
+              return (
+                <button
+                  key={p}
+                  onClick={() => setSelectedPile(p)}
+                  className={cn(
+                    "whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all border touch-press flex items-center gap-1.5",
+                    isSelected
+                      ? "bg-blue-600 text-white border-blue-600 shadow-xs shadow-blue-600/20"
+                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                  )}
+                >
+                  <span>{p}</span>
+                  <span
+                    className={cn(
+                      "px-1.5 py-0.2 rounded-md text-[10px] font-black",
+                      isSelected ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
+                    )}
+                  >
+                    {countInPile}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Filter Chips: [ทั้งหมด] [ยังไม่ได้นับ] [นับแล้ว] [มีการนับซ้ำ] */}
       <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
         {[
           { id: "ALL" as CountFilter, label: "ทั้งหมด", count: filterStats.all },
-          { id: "UNCOUNTED" as CountFilter, label: "ยังไม่ได้นับ", count: filterStats.uncounted, color: "text-amber-700 bg-amber-50 border-amber-200" },
-          { id: "COUNTED" as CountFilter, label: "นับแล้ว", count: filterStats.counted, color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-          { id: "RECOUNTED" as CountFilter, label: "นับซ้ำ", count: filterStats.recounted, color: "text-blue-700 bg-blue-50 border-blue-200" },
+          { id: "UNCOUNTED" as CountFilter, label: "ยังไม่ได้นับ", count: filterStats.uncounted },
+          { id: "COUNTED" as CountFilter, label: "นับแล้ว", count: filterStats.counted },
+          { id: "RECOUNTED" as CountFilter, label: "นับซ้ำ", count: filterStats.recounted },
         ].map((f) => {
           const isActive = filterStatus === f.id;
           return (
@@ -338,7 +432,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
             <Filter className="mx-auto h-8 w-8 text-slate-300 mb-2" />
             <h4 className="text-sm font-bold text-slate-800">ไม่พบรายการสินค้า</h4>
             <p className="text-xs text-slate-400 mt-1">
-              ลองเปลี่ยนคำค้นหาหรือเลือกฟิลเตอร์อื่น
+              ลองเปลี่ยนคำค้นหาหรือเลือกจุดวาง/กองอื่น
             </p>
           </div>
         ) : (
@@ -353,6 +447,7 @@ export const CountRoundView: React.FC<CountRoundViewProps> = ({
                 onCount={onCountItem}
                 countStatus={countStatus}
                 countCount={countCount}
+                selectedPile={selectedPile}
               />
             );
           })

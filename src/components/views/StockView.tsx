@@ -47,6 +47,7 @@ export const StockView: React.FC<StockViewProps> = ({
   const debouncedSearch = useDebounce(search, 300);
   const [selectedPlant, setSelectedPlant] = useState<number | "ALL">("ALL");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const [selectedPile, setSelectedPile] = useState<string>("ALL");
 
   const isAdmin = currentUser.role === "ADMIN";
 
@@ -54,43 +55,71 @@ export const StockView: React.FC<StockViewProps> = ({
   const categoryOptions = useMemo(() => {
     return [
       { id: "ALL", label: "ทั้งหมด", count: items.length },
-      { id: "slabs", label: "แผ่นพื้น Plank/HC", count: items.filter(i => i.category === "slabs").length },
-      { id: "pipes", label: "ท่อระบายน้ำ", count: items.filter(i => i.category === "pipes").length },
-      { id: "poles", label: "เสาไฟฟ้า", count: items.filter(i => i.category === "poles").length },
-      { id: "piles", label: "เสาเข็ม", count: items.filter(i => i.category === "piles").length },
-      { id: "walls", label: "ผนังกันดิน", count: items.filter(i => i.category === "walls").length },
-    ].filter(c => c.id === "ALL" || c.count > 0);
+      { id: "slabs", label: "แผ่นพื้นตัน", count: items.filter((i) => i.category === "slabs").length },
+      { id: "pipes", label: "ท่อระบายน้ำ", count: items.filter((i) => i.category === "pipes").length },
+      { id: "poles", label: "เสาไฟฟ้า", count: items.filter((i) => i.category === "poles").length },
+      { id: "piles", label: "เสาเข็ม", count: items.filter((i) => i.category === "piles").length },
+      { id: "fences", label: "เสารั้ว", count: items.filter((i) => i.category === "fences").length },
+      { id: "hardscape", label: "อิฐบล็อก/ทางเท้า", count: items.filter((i) => i.category === "hardscape").length },
+    ].filter((c) => c.id === "ALL" || c.count > 0);
   }, [items]);
 
-  // Filtered Items (Rule 23: 300ms Debounce)
+  // Distinct Piles/Locations in current selection
+  const availablePiles = useMemo(() => {
+    const set = new Set<string>();
+    const baseItems = selectedPlant === "ALL" ? items : items.filter((i) => i.plant_id === selectedPlant);
+    baseItems.forEach((item) => {
+      (item.locations || []).forEach((l) => {
+        if (l.lock_code) set.add(l.lock_code);
+      });
+      if (item.zone) {
+        item.zone.split(",").forEach((z) => {
+          const trimmed = z.trim();
+          if (trimmed && !trimmed.startsWith("โรง")) set.add(trimmed);
+        });
+      }
+    });
+    return Array.from(set).sort((a, b) =>
+      a.localeCompare(b, undefined, { numeric: true })
+    );
+  }, [items, selectedPlant]);
+
+  // Filtered Items (Rule 23: 300ms Debounce + Smart Multi-Term Search)
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      // Search
+      // 1. Multi-term search (e.g. "2.95 5", "กอง 4", "รั้ว 3 2.5", "ท่อ 80")
       const q = debouncedSearch.toLowerCase().trim();
-      const locStr = (item.locations || []).map(l => `${l.lock_code} ${l.row_code}`).join(" ").toLowerCase();
-      const matchesSearch =
-        !q ||
-        item.sku.toLowerCase().includes(q) ||
-        item.name.toLowerCase().includes(q) ||
-        item.size.toLowerCase().includes(q) ||
-        locStr.includes(q) ||
-        (item.zone && item.zone.toLowerCase().includes(q));
+      if (q) {
+        const terms = q.split(/\s+/).filter(Boolean);
+        const locStr = (item.locations || [])
+          .map((l) => `${l.lock_code} ${l.row_code}`)
+          .join(" ");
+        const searchableText = `${item.sku} ${item.name} ${item.size} ${item.variant || ""} ${item.zone || ""} ${locStr}`.toLowerCase();
+        const matchesAllTerms = terms.every((term) => searchableText.includes(term));
+        if (!matchesAllTerms) return false;
+      }
 
-      if (!matchesSearch) return false;
-
-      // Plant
+      // 2. Plant
       if (selectedPlant !== "ALL" && item.plant_id !== selectedPlant) {
         return false;
       }
 
-      // Category
+      // 3. Category
       if (selectedCategory !== "ALL" && item.category !== selectedCategory) {
         return false;
       }
 
+      // 4. Pile Filter
+      if (selectedPile !== "ALL") {
+        const hasPile =
+          (item.locations || []).some((l) => l.lock_code === selectedPile) ||
+          (item.zone && item.zone.includes(selectedPile));
+        if (!hasPile) return false;
+      }
+
       return true;
     });
-  }, [items, debouncedSearch, selectedPlant, selectedCategory]);
+  }, [items, debouncedSearch, selectedPlant, selectedCategory, selectedPile]);
 
   return (
     <div className="space-y-3.5 animate-in fade-in duration-300">
@@ -106,7 +135,7 @@ export const StockView: React.FC<StockViewProps> = ({
               ยอดสต๊อกคงเหลือจริง
             </h2>
             <p className="text-xs text-slate-500">
-              ตรวจสอบยอดคงเหลือ อัปเดตจากยอดนับล่าสุดแบบ Realtime
+              ข้อมูลจริงจากเอกสารสต๊อกสินค้า ปี 2569 บริษัท ขอนแก่นผลิตภัณฑ์คอนกรีต จำกัด
             </p>
           </div>
 
@@ -150,7 +179,7 @@ export const StockView: React.FC<StockViewProps> = ({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="ค้นหาชื่อ, SKU, ขนาด, โรง, โซน..."
+            placeholder="ค้นหา เช่น '2.95 5', 'กอง 4', 'รั้ว 3', 'ท่อ 80'..."
             className="pl-10.5 pr-4 h-12 rounded-2xl bg-white border-2 border-slate-200/90 text-sm font-semibold placeholder:text-slate-400 focus:border-blue-600 shadow-xs"
           />
           {search && (
@@ -180,7 +209,10 @@ export const StockView: React.FC<StockViewProps> = ({
       {/* Plant Filter Chips */}
       <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
         <button
-          onClick={() => setSelectedPlant("ALL")}
+          onClick={() => {
+            setSelectedPlant("ALL");
+            setSelectedPile("ALL");
+          }}
           className={cn(
             "whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all border touch-press",
             selectedPlant === "ALL"
@@ -195,7 +227,10 @@ export const StockView: React.FC<StockViewProps> = ({
           return (
             <button
               key={p.id}
-              onClick={() => setSelectedPlant(p.id)}
+              onClick={() => {
+                setSelectedPlant(p.id);
+                setSelectedPile("ALL");
+              }}
               className={cn(
                 "whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all border touch-press",
                 isSelected
@@ -235,6 +270,56 @@ export const StockView: React.FC<StockViewProps> = ({
         ))}
       </div>
 
+      {/* Yard Pile Selector */}
+      {availablePiles.length > 1 && (
+        <div className="space-y-1.5 pt-0.5">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 text-blue-600" />
+              กรองตามจุดวาง / กองสินค้า ({availablePiles.length} จุด)
+            </span>
+            {selectedPile !== "ALL" && (
+              <button
+                onClick={() => setSelectedPile("ALL")}
+                className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
+              >
+                ดูทุกล็อค
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            <button
+              onClick={() => setSelectedPile("ALL")}
+              className={cn(
+                "whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all border touch-press",
+                selectedPile === "ALL"
+                  ? "bg-slate-900 text-white border-slate-900 shadow-xs"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              )}
+            >
+              ทุกล็อค
+            </button>
+            {availablePiles.map((p) => {
+              const isSelected = selectedPile === p;
+              return (
+                <button
+                  key={p}
+                  onClick={() => setSelectedPile(p)}
+                  className={cn(
+                    "whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all border touch-press",
+                    isSelected
+                      ? "bg-blue-600 text-white border-blue-600 shadow-xs shadow-blue-600/20"
+                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                  )}
+                >
+                  {p}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Stock Items List */}
       <div className="space-y-3 pt-1">
         {filteredItems.length === 0 ? (
@@ -245,9 +330,14 @@ export const StockView: React.FC<StockViewProps> = ({
           </div>
         ) : (
           filteredItems.map((item) => {
-            const locSummary = (item.locations || []).map((l) => `${l.lock_code}/${l.row_code}`).join(", ");
+            const locSummary = (item.locations || []).map((l) => l.lock_code || "L").join(", ");
             const hasLocations = Boolean(locSummary);
             const isZeroStock = item.current_quantity === 0;
+
+            // Pile specific quantity if selected
+            const pileQty = selectedPile !== "ALL" && item.locations
+              ? item.locations.find((l) => l.lock_code === selectedPile)?.expected_quantity ?? null
+              : null;
 
             return (
               <div
@@ -256,12 +346,12 @@ export const StockView: React.FC<StockViewProps> = ({
               >
                 {/* Meta Header */}
                 <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-mono text-xs font-black px-2 py-0.5 rounded-md bg-slate-900 text-white">
                       {item.sku}
                     </span>
-                    <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
-                      <MapPin className="h-3 w-3 text-slate-400" />
+                    <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                      <MapPin className="h-3 w-3 text-slate-500" />
                       โรง {item.plant_id}{hasLocations ? ` • ${locSummary}` : (item.zone ? ` • ${item.zone}` : "")}
                     </span>
                   </div>
@@ -280,24 +370,37 @@ export const StockView: React.FC<StockViewProps> = ({
                 </h4>
 
                 {/* Prominent Size */}
-                <div className="mt-1 mb-2.5 flex items-center gap-2">
+                <div className="mt-1 mb-2.5 flex items-center gap-2 flex-wrap">
                   <div className="rounded-lg bg-blue-50 border border-blue-200 px-2.5 py-0.5">
                     <span className="text-xs font-extrabold text-blue-700">
                       {item.size}
                     </span>
                   </div>
                   {item.variant && item.variant !== "-" && (
-                    <span className="text-xs text-slate-500 truncate max-w-[180px]">
+                    <span className="text-xs font-semibold text-slate-500 truncate max-w-[200px]">
                       {item.variant}
                     </span>
                   )}
                 </div>
 
+                {/* If counting at a specific pile, highlight the pile expected qty */}
+                {pileQty !== null && (
+                  <div className="mb-2.5 rounded-xl bg-amber-50 border border-amber-200 p-2 flex items-center justify-between text-xs">
+                    <span className="font-bold text-amber-800 flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5 text-amber-600" />
+                      ยอดใน {selectedPile}:
+                    </span>
+                    <span className="font-black text-amber-900 text-sm">
+                      {formatNumber(pileQty)} {item.unit}
+                    </span>
+                  </div>
+                )}
+
                 {/* Current Quantity Card */}
                 <div className="rounded-2xl bg-slate-50 p-2.5 border border-slate-100 flex items-center justify-between mb-3">
                   <div>
                     <span className="text-[11px] text-slate-500 font-medium block">
-                      ยอดคงเหลือปัจจุบัน
+                      {pileQty !== null ? "ยอดรวมทั้งโรงงาน" : "ยอดคงเหลือปัจจุบัน"}
                     </span>
                     <div className="flex items-baseline gap-1 mt-0.5">
                       <span className="text-2xl font-black text-slate-900">
@@ -357,7 +460,7 @@ export const StockView: React.FC<StockViewProps> = ({
                       size="sm"
                       title="ดูและพิมพ์ป้าย QR Code"
                       aria-label="ดูและพิมพ์ป้าย QR Code"
-                      className="h-10 w-10 shrink-0 p-0 rounded-xl border-slate-200 text-slate-700 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center touch-press"
+                      className="h-10 w-10 shrink-0 p-0 rounded-xl border-slate-200 text-slate-700 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center touch-press cursor-pointer"
                     >
                       <QrCode className="h-4 w-4" />
                     </Button>
