@@ -109,22 +109,22 @@ async function runAllPagesNavigationTests() {
   // ─────────────────────────────────────────────────────────────
   console.log("\n--- 2. Testing Product Digital Warehouse Tag Pages ---");
 
-  // 2.1 Concrete fence pole (FP-250-18)
-  const fpRes = await fetch(`${PROD_URL}/products/FP-250-18`);
+  // 2.1 Concrete fence pole (FP-3-200)
+  const fpRes = await fetch(`${PROD_URL}/products/FP-3-200`);
   const fpHtml = await fpRes.text();
-  if (fpRes.status === 200 && fpHtml.includes("FP-250-18") && fpHtml.includes("เสารั้วคอนกรีต")) {
-    pass("GET /products/FP-250-18 renders digital stock tag with 200 OK and concrete specs");
+  if (fpRes.status === 200 && fpHtml.includes("FP-3-200") && fpHtml.includes("เสารั้วคอนกรีต")) {
+    pass("GET /products/FP-3-200 renders digital stock tag with 200 OK and concrete specs");
   } else {
-    fail("Product FP-250-18", `Failed to load product tag: ${fpRes.status}`);
+    fail("Product FP-3-200", `Failed to load product tag: ${fpRes.status}`);
   }
 
-  // 2.2 Solid Plank slab (SLAB-SP-100)
-  const spRes = await fetch(`${PROD_URL}/products/SLAB-SP-100`);
+  // 2.2 Solid Plank slab (SLAB-SP-100-W4)
+  const spRes = await fetch(`${PROD_URL}/products/SLAB-SP-100-W4`);
   const spHtml = await spRes.text();
-  if (spRes.status === 200 && spHtml.includes("SLAB-SP-100")) {
-    pass("GET /products/SLAB-SP-100 renders digital stock tag with 200 OK");
+  if (spRes.status === 200 && spHtml.includes("SLAB-SP-100-W4")) {
+    pass("GET /products/SLAB-SP-100-W4 renders digital stock tag with 200 OK");
   } else {
-    fail("Product SLAB-SP-100", `Failed to load product tag: ${spRes.status}`);
+    fail("Product SLAB-SP-100-W4", `Failed to load product tag: ${spRes.status}`);
   }
 
   // 2.3 Non-existent product fallback
